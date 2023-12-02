@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tsd_main_app.views import login_user, register_user
+from tsd_main_app.views import login_user, register_user, store_result
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +26,7 @@ urlpatterns = [
     
     #URL of user login
     path('login/', login_user, name='login-user'),
+
+    #URL to store the results
+    path('store_result/', store_result, name='store-result')
 ]

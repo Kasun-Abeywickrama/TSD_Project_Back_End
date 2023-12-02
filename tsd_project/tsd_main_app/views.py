@@ -1,12 +1,14 @@
 
+import string
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 import jwt
 from django.http import JsonResponse
 from django.conf import settings
 from rest_framework import status
-from rest_framework.decorators import api_view
-from tsd_main_app.serializers import LoginSerializer, CustomUserSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from tsd_main_app.serializers import LoginSerializer, CustomUserSerializer, ResultSerializer
 
 
 # Creating the view to register the user
@@ -72,9 +74,10 @@ def login_user(request):
 
 # Function that creates a JWT token
 def generate_jwt_token(customuser):
-    # Including the username in the payload
+    # Including the username and user id in the payload
     payload = {
-        'username' : customuser.username
+        'username' : customuser.username,
+        'user_id' : customuser.id,
     }
 
     # generate the JWT token
@@ -82,3 +85,32 @@ def generate_jwt_token(customuser):
 
     # Returning the token
     return token
+
+
+
+#Creating the view to store the data in the result table
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def store_result(request):
+    #Getting the data in the request
+    data = request.data
+
+    #Adding the user_id to the data, by getting user_id from the user object we created within the jwt authentication
+    data['user'] = request.user.id
+
+    #Adding data to the serializer
+    result_serializer = ResultSerializer(data = data)
+
+    #Checking if the serislizer is valid
+    if result_serializer.is_valid():
+
+        #Creating the database record
+        result_serializer.save()
+        
+        return JsonResponse({'result':'Results has been submitted successfully'}, status=201)
+    
+    else:
+        return JsonResponse(result_serializer.errors, status = 400)
+    
+    
+

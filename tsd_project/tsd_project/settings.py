@@ -52,6 +52,13 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+#Jwt Authentication class
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'tsd_main_app.jwt_authentication.JWTAuthentication',
+    ),
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
