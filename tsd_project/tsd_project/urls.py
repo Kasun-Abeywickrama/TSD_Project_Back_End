@@ -16,17 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tsd_main_app.views import login_user, register_user, store_result
+from tsd_main_app.views import UserRegisterView, UserLoginView, QuizSendingView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     #URL of registering the user
-    path('register/', register_user, name='register-user'),
+    path('register/', UserRegisterView.as_view(), name='register-user'),
     
     #URL of user login
-    path('login/', login_user, name='login-user'),
+    path('login/', UserLoginView.as_view(), name='login-user'),
+
+    #URL of sending questions and answers
+    path('quiz_send/',QuizSendingView.as_view(), name='quiz-send'),
 
     #URL to store the results
-    path('store_result/', store_result, name='store-result')
+    #path('store_result/', store_result, name='store-result'),
+
+    #URL to view the previous results
+    #path('view_result/', view_result, name='view-result')
 ]

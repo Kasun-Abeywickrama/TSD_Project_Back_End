@@ -74,7 +74,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
 ]
 
-AUTH_USER_MODEL = 'tsd_main_app.CustomUser'
+AUTH_USER_MODEL = 'tsd_main_app.AuthUser'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:54910',  # Flutter app url
