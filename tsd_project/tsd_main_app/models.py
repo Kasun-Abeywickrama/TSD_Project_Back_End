@@ -56,17 +56,32 @@ class Answer(models.Model):
 
 
 
+#Creating the quiz_rsult model to store quiz results
+class QuizResult(models.Model):
+    # Adding the foreign key field from the User table (1:many relationship)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-#creating the result model
-#class Result(models.Model):
-    # Adding the foreign key field
-    #user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    # Creating the many to many relationship between the question and quiz result table
+    questions = models.ManyToManyField(Question, through='QuizQandA')
 
     #Adding the other fields
-    #test_score = models.CharField(max_length = 40)
-    #depression_level = models.CharField(max_length=100)
-    #no_of_days = models.CharField(max_length=20)
-    #conclusion = models.CharField(max_length=200)
-    #date = models.DateField(auto_now_add=True)
-    #time = models.TimeField(auto_now_add=True)
+    score = models.CharField(max_length = 40)
+    dp_level = models.CharField(max_length=100)
+    no_of_days = models.CharField(max_length=20)
+    conclusion = models.CharField(max_length=200)
+    counselor_or_not = models.CharField(max_length=1)
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
     
+
+
+# Creating the many to many table of question and quiz result
+class QuizQandA(models.Model):
+    #Foreign key with question model
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    #Foreign key with the quiz result model
+    quiz_result = models.ForeignKey(QuizResult, on_delete=models.CASCADE)
+
+    #Adding the other fields
+    answer_id = models.CharField(max_length=30)

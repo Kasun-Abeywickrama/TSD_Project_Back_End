@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AuthUser, User, Question, Answer
+from .models import AuthUser, QuizQandA, QuizResult, User, Question, Answer
 
 # Registering the custom user model
 admin.site.register(AuthUser)
@@ -13,7 +13,10 @@ admin.site.register(Question)
 #Registering the Answer model
 admin.site.register(Answer)
     
-#registering the result model
-#admin.site.register(Result)
+#registering the quiz result model
+admin.site.register(QuizResult)
+
+#registering the quiz questions and answers model
+admin.site.register(QuizQandA)
 
 

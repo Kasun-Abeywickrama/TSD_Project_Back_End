@@ -10,8 +10,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from tsd_main_app.models import AuthUser, Question
-from tsd_main_app.serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer
+from tsd_main_app.models import AuthUser, Question, QuizResult, User
+from tsd_main_app.serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer
 
 
 # Creating the view to register the user
@@ -144,83 +144,109 @@ class QuizSendingView(APIView):
 
 
 
+#Creating the view to store the quiz result data, quiz q and a data in the relavant tables
+class QuizResultStoringView(APIView):
 
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        # Check if the auth user type is user
+        if request.user.auth_user_type == 'user':
 
+            # Getting the user_id through the auth_user_id
+            user = User.objects.get(auth_user = request.user.id)
+            print(user)
 
+            user_id = user.id
 
+            #Adding the user id to the data set
+            quiz_result_data = request.data.get('quiz_result_data', {})
+            quiz_q_and_a_data = request.data.get('quiz_q_and_a_data', {})
 
+            quiz_result_data['user'] = user_id
 
+            #Putting the data sets to the serializers and validating them, saving them
+            quiz_result_serializer = QuizResultSerializer(data = quiz_result_data)
 
+            #Checking if the quiz result serializer is valid
+            if quiz_result_serializer.is_valid():
 
+                #saving the quiz result data
+                quiz_result_instance = quiz_result_serializer.save()
 
+                #Adding quiz result id to every data map of the quiz q and a data
+                for quiz_q_and_a_item in quiz_q_and_a_data:
+                    quiz_q_and_a_item['quiz_result'] = quiz_result_instance.id
 
-#Creating the view to store the data in the result table
-#@api_view(['POST'])
-#@permission_classes([IsAuthenticated])
-#def store_result(request):
-    #Getting the data in the request
-    ##data = request.data
+                #putting the data to the quiz q and a serializer
+                quiz_q_and_a_serializer = QuizQandASerializer(data=quiz_q_and_a_data, many=True)
 
-    #Adding the user_id to the data, by getting user_id from the user object we created within the jwt authentication
-    #data['user'] = request.user.id
+                #Checking if the quiz q and a serializer is valid
+                if quiz_q_and_a_serializer.is_valid():
 
-    #Adding data to the serializer
-    #result_serializer = ResultSerializer(data = data)
+                    #saving the quiz questions and answers
+                    quiz_q_and_a_serializer.save()
 
-    #Checking if the serislizer is valid
-    #if result_serializer.is_valid():
-
-        #Creating the database record
-        #result_serializer.save()
+                    #returning the response that contains the quiz result id
+                    return JsonResponse({'Status': 'Data Submitted submitted successfully', 'quiz_result_id': quiz_result_instance.id}, status=201)
+                
+                else:
+                    #Deleting the created quiz result record
+                    quiz_result_instance.delete()
+                    return JsonResponse({'errors': quiz_q_and_a_serializer.errors},status=400)
+                
+            else:
+                return JsonResponse({'errors':quiz_result_serializer.errors},status=400)
         
-        #return JsonResponse({'result':'Results has been submitted successfully'}, status=201)
-    
-    #else:
-        #return JsonResponse(result_serializer.errors, status = 400)
-    
-    
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
 
 
-#Creating the view to send the requested result data
-#@api_view(['POST'])
-#@permission_classes([IsAuthenticated])
-#def view_result(request):
 
-    #Getting the user id of the user through the authentication
-    #user_id = request.user.id
 
-    #Putting the date and time to the serializer
-    #view_result_serializer = ViewResultSerializer(data = request.data)
+#Creating the view to send the requested quiz result data
+class QuizResultSendingView(APIView):
 
-    #Checking if the serializer is valid
-    #if view_result_serializer.is_valid():
+    permission_classes = [IsAuthenticated]
 
-        ##Getting the data and time to variables
-        #received_date = view_result_serializer.validated_data['date']
-        #received_time = view_result_serializer.validated_data['time']
+    def post(self, request):
 
-        #Get the result data into a variable
-        #sending_result = Result.objects.filter(user=user_id,date = received_date, time = received_time).order_by('id').first()
+        # Check if the auth user type is user
+        if request.user.auth_user_type == 'user':
 
-        # Check if a result was found
-        #if sending_result is not None:
-            # Create the map with the result data
-            #result_data = {
-                #'date': sending_result.date,
-                #'time': sending_result.time,
-                #'test_score': sending_result.test_score,
-                #'depression_level': sending_result.depression_level,
-                #'conclusion': sending_result.conclusion
-            #}
-            #print(result_data)
-            #Send the result data to the frontend as a Json Response
-            #return JsonResponse(result_data,status = 200)
-        #else:
-            ##print("No result data found")
-            #return JsonResponse({'error':'no result data found'}, status=400)
-    #else:
-        #return JsonResponse(view_result_serializer.errors, status = 400)
+            #Putting the data to the serializer
+            quiz_result_sending_serializer = QuizResultSendingSerializer(data = request.data)
+
+            #Checking if the serializer is valid
+            if quiz_result_sending_serializer.is_valid():
+
+                #Get the quiz result data into a variable
+                sending_quiz_result = QuizResult.objects.get(id = quiz_result_sending_serializer.validated_data['quiz_result_id'])
+
+                # Check if a quiz result was found
+                if sending_quiz_result is not None:
+                    # Create the map with the quiz result data
+                    quiz_result_data = {
+                        'date': sending_quiz_result.date,
+                        'time': sending_quiz_result.time,
+                        'score': sending_quiz_result.score,
+                        'dp_level': sending_quiz_result.dp_level,
+                        'conclusion': sending_quiz_result.conclusion,
+                        'counselor_or_not': sending_quiz_result.counselor_or_not,
+                    }
+                    print(quiz_result_data)
+                    #Send the quiz result data to the frontend as a Json Response
+                    return JsonResponse(quiz_result_data,status = 200)
+                
+                else:
+                    print("No result data found")
+                    return JsonResponse({'error':'no result data found'}, status=400)
+                
+            else:
+                return JsonResponse(quiz_result_sending_serializer.errors, status = 400)
+            
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
 
 
 

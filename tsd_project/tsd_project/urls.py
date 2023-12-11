@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tsd_main_app.views import UserRegisterView, UserLoginView, QuizSendingView
+from tsd_main_app.views import UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,9 +30,9 @@ urlpatterns = [
     #URL of sending questions and answers
     path('quiz_send/',QuizSendingView.as_view(), name='quiz-send'),
 
-    #URL to store the results
-    #path('store_result/', store_result, name='store-result'),
+    #URL to store the quiz result and q and a data
+    path('quiz_data_store/', QuizResultStoringView.as_view(), name='quiz-data-store'),
 
-    #URL to view the previous results
-    #path('view_result/', view_result, name='view-result')
+    #URL to view the quiz results
+    path('view_quiz_result/', QuizResultSendingView.as_view(), name='view-quiz-result')
 ]
