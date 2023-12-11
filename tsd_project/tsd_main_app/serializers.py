@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AuthUser, User, Question, Answer
+from .models import AuthUser, QuizQandA, QuizResult, User, Question, Answer
 
 #Creating the model serializer for auth user model
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -54,19 +54,23 @@ class QuestionSendingSerializer(serializers.ModelSerializer):
 
 
 
+#creating the serializer to validate and store quiz result data
+class QuizResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizResult
+        fields = '__all__'
 
 
 
-#creating the serializer to validate and store result data
-#class ResultSerializer(serializers.ModelSerializer):
-    #class Meta:
-        #model = Result
-        #fields = '__all__'
+#Creating the serializer to validate and store quiz questions and answers data
+class QuizQandASerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizQandA
+        fields = '__all__'
 
 
-#Creating the serializer to validate the date and time of the result data
-#lass ViewResultSerializer(serializers.Serializer):
-    #date = serializers.DateField()
-    #time = serializers.TimeField()
+#Creating the serializer to validate the quiz result id
+class QuizResultSendingSerializer(serializers.Serializer):
+    quiz_result_id = serializers.CharField()
 
 
