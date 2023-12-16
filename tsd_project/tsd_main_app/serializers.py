@@ -15,18 +15,29 @@ class AuthUserSerializer(serializers.ModelSerializer):
         authuser.save()
         return authuser
     
+    def update(self, instance, validated_data):
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        instance.username = validated_data.get('username', instance.username)
+        instance.auth_user_type = validated_data.get('auth_user_type', instance.auth_user_type)
+        
+        instance.save()
+        return instance
+    
 
 #Creating the model serializer for User model
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name','age', 'email', 'telephone', 'auth_user']
+        fields = '__all__'
 
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
-    age = serializers.CharField(required=False)
     email = serializers.EmailField(required=False)
-    telephone = serializers.CharField(required=False)
+    mobile_number = serializers.CharField(required=False)
+    date_of_birth = serializers.DateField(required=False)
 
 
 #Creating a serializer to validate the login information
@@ -72,5 +83,12 @@ class QuizQandASerializer(serializers.ModelSerializer):
 #Creating the serializer to validate the quiz result id
 class QuizResultSendingSerializer(serializers.Serializer):
     quiz_result_id = serializers.CharField()
+
+
+#Creating the previous quiz result sending serializer
+class PreviousQuizResultSendingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model =  QuizResult
+        fields = ['id', 'date', 'time', 'dp_level', 'score']
 
 

@@ -1,6 +1,7 @@
 from django.db.models.functions import TruncSecond
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from datetime import date
 
 #Creating a custom user model to store authentication information
 class AuthUser(AbstractUser):
@@ -19,14 +20,22 @@ class User(models.Model):
     auth_user = models.OneToOneField(AuthUser, on_delete=models.CASCADE)
 
     #Declaring relavant fields
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email = models.CharField(max_length=50)
-    telephone = models.CharField(max_length=50)
-    age = models.CharField(max_length=3)
-
-    def __str__(self):
-        return self.first_name
+    first_name = models.CharField(max_length=50, null=True)
+    last_name = models.CharField(max_length=50, null=True)
+    email = models.CharField(max_length=50, null=True)
+    mobile_number = models.CharField(max_length=50, null=True)
+    date_of_birth = models.DateField(null=True)
+    
+    #We can access the age property through an instance of a User object
+    @property
+    def age(self):
+        if self.date_of_birth is not None:
+            today = date.today()
+            age = today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+            return age
+        else:
+            return "No Date of Birth"
+    
     
 
 #Creating the Question model

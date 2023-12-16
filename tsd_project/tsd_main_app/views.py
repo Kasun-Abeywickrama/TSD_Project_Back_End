@@ -8,10 +8,11 @@ from django.http import JsonResponse
 from django.conf import settings
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.generics import UpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from tsd_main_app.models import AuthUser, Question, QuizResult, User
-from tsd_main_app.serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer
+from tsd_main_app.serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
 # Creating the view to register the user
@@ -107,7 +108,6 @@ def generate_jwt_token(authuser):
 
     # Creating the payload
     payload = {
-        'username' : authuser.username,
         'auth_user_id' : authuser.id,
         'auth_user_type': authuser.auth_user_type,
         'exp': expiration_time,
@@ -247,6 +247,161 @@ class QuizResultSendingView(APIView):
             
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+        
+
+
+#Creating the view to send the previous quiz result data
+class PreviousQuizResultSendingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            # Getting the user_id through the auth_user_id
+            user = User.objects.get(auth_user = request.user.id)
+            print(user)
+
+            user_id = user.id
+
+            #Getting the relavant data set from the database
+            previous_quiz_results = QuizResult.objects.filter(user = user_id)
+
+            previous_quiz_result_serializer = PreviousQuizResultSendingSerializer(previous_quiz_results, many = True)
+
+            #Sending the data to the frontend as a Json Response
+            return JsonResponse({'previous_quiz_results' : previous_quiz_result_serializer.data}, status=200)
+        
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+        
+
+
+#Creating the view to send the user personal details
+class UserPersonalDetailsSendingView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            #Getting the user_id through the auth_user_id
+            user = User.objects.get(auth_user = request.user.id)
+            print(user)
+
+            user_id = user.id
+
+            #Getting the user object from the databse
+            user_instance = User.objects.get(id = user_id)
+
+            print(user_instance.age)
+
+            #Putting the data to serailizer and then sending them as a json response
+            user_personal_details_sending_serializer = UserSerializer(user_instance)
+
+            print(user_personal_details_sending_serializer.data)
+
+            return JsonResponse({'user_personal_details':user_personal_details_sending_serializer.data},status = 200)
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+
+
+
+#Creating the view to update user personal details
+class UserPersonalDetailsUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+            
+            #Getting the user_id through the auth_user_id
+            user = User.objects.get(auth_user = request.user.id)
+            print(user)
+
+            user_id = user.id
+
+            #Get the user instance for that id
+            user_instance = User.objects.get(id=user_id)
+
+            #Updating the data through the serializer
+            user_personal_details_updating_serializer = UserSerializer(user_instance, data = request.data, partial=True)
+
+            if user_personal_details_updating_serializer.is_valid():
+
+                user_personal_details_updating_serializer.save()
+
+                return JsonResponse({'Suceess': 'Data updated successfully'}, status=201)
+
+            else:
+                return JsonResponse({'Error': user_personal_details_updating_serializer.errors}, status=400)
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+        
+
+
+#Creating the view to send the user auth user details
+class UserAuthUserDetailsSendingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            #Getting the auth_user_id to a variable
+            auth_user_id = request.user.id
+
+            #Getting the object of that auth user id
+            auth_user_object = AuthUser.objects.get(id = auth_user_id)
+
+            #Putting it to the serializer and sending the serializer data to the frontend
+            user_auth_user_details_sending_serializer = AuthUserSerializer(auth_user_object)
+
+            return JsonResponse({'user_auth_user_details': user_auth_user_details_sending_serializer.data}, status=200)
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+        
+
+#Creating the view to update user auth user details
+class UserAuthUserDetailsUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            #Getting the current password and new updating data to variables
+            current_password = request.data.get('current_password')
+
+            user_auth_user_data = request.data.get('user_auth_user_details', {})
+
+            #Validating the current password
+            user_auth_user = authenticate(request, username= request.user.username, password = current_password)
+
+            if user_auth_user is not None:
+                
+                #Updating the auth user details
+                user_auth_user_details_updating_serializer = AuthUserSerializer(user_auth_user, data = user_auth_user_data, partial=True)
+
+                if user_auth_user_details_updating_serializer.is_valid():
+
+                    user_auth_user_details_updating_serializer.save()
+
+                    return JsonResponse({'Sucess': 'Data updated successfully'}, status=201)
+                else:
+                    return JsonResponse({'errors': user_auth_user_details_updating_serializer.errors}, status=400)
+                
+            else:
+                return JsonResponse({'error': 'Invalid credentials'},status=status.HTTP_401_UNAUTHORIZED)
+        
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+    
 
 
 
