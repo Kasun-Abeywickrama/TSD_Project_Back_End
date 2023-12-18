@@ -12,7 +12,7 @@ from rest_framework.generics import UpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from tsd_main_app.models import AuthUser, Question, QuizResult, User
-from tsd_main_app.serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
+from tsd_main_app.mobile_app_serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
 # Creating the view to register the user
@@ -104,7 +104,7 @@ class UserLoginView(APIView):
 # Function that creates a JWT token
 def generate_jwt_token(authuser):
     # Set the expiration time (e.g., 1 hour from now)
-    expiration_time = datetime.utcnow() + timedelta(hours=1)
+    expiration_time = datetime.utcnow() + timedelta(minutes=30)
 
     # Creating the payload
     payload = {

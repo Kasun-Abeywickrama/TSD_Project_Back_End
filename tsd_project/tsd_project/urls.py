@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tsd_main_app.views import UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView
+from tsd_main_app.mobile_app_views import UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
