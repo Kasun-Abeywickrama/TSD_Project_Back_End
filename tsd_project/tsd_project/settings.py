@@ -159,4 +159,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATIC_ROOT = "/home/MindCare/Tsd_Project_Back_End/tsd_project/static"
+STATIC_ROOT = "/home/MindCare/TSD_Project_Back_End/tsd_project/static"
