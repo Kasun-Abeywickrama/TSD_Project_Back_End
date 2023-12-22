@@ -35,7 +35,19 @@ class User(models.Model):
             return age
         else:
             return "No Date of Birth"
-    
+
+#Creating the Admin model
+class Admin(models.Model):
+
+    #Declaring 1 to 1 relationship between AuthUser model
+    auth_user = models.OneToOneField(AuthUser, on_delete=models.CASCADE)
+
+    #Declaring relavant fields
+    first_name = models.CharField(max_length=50, null=True)
+    last_name = models.CharField(max_length=50, null=True)
+    email = models.CharField(max_length=50, null=True)
+    mobile_number = models.CharField(max_length=50, null=True)
+    date_of_birth = models.DateField(null=True)  
     
 
 #Creating the Question model
@@ -94,3 +106,24 @@ class QuizQandA(models.Model):
 
     #Adding the other fields
     answer_id = models.CharField(max_length=30)
+
+
+
+# Creating the Permission Model
+class Permission(models.Model):
+    name = models.CharField(max_length=200) 
+
+# Creating the Role Model
+class Role(models.Model):
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+
+# Creating the Page Model
+class Page(models.Model):
+    permission = models.ManyToManyField(Permission)
+    title = models.CharField(max_length=200)
+    description = models.CharField(max_length=1000)
+    image = models.CharField(max_length=200)
+
+
+
