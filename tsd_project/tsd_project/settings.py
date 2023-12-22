@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-&+jo3was*bebzfo_s#4ad-f)csg8utbkhdtfjr$!czpm6ig&n%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11']
+ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11', 'MindCare.pythonanywhere.com']
 
 
 # Application definition
@@ -109,10 +109,10 @@ WSGI_APPLICATION = 'tsd_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tsdproject',
-        'USER': 'root',
-        'PASSWORD': '20021028',
-        'HOST': 'localhost',
+        'NAME': 'MindCare$tsd_project',
+        'USER': 'MindCare',
+        'PASSWORD': 'MySQL2024$',
+        'HOST': 'MindCare.mysql.pythonanywhere-services.com',
         'PORT': '3306',
     }
 }
@@ -158,3 +158,5 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = "/home/MindCare/Tsd_Project_Back_End/tsd_project/static"
