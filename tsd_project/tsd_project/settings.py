@@ -119,7 +119,7 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tsd_project',
+        'NAME': 'tsdproject',
         'USER': 'root',
         'PASSWORD': '20021028',
         'HOST': 'localhost',
