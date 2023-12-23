@@ -21,7 +21,7 @@ from tsd_main_app.mobile_app_views import UserRegisterView, UserLoginView, QuizS
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('api/admin/',include('tsd_main_app.urls')),
+    path('api/wa/',include('tsd_main_app.urls')),
 
     #URL of registering the user
     path('register/', UserRegisterView.as_view(), name='register-user'),

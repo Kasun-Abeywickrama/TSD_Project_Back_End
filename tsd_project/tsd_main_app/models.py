@@ -112,11 +112,15 @@ class QuizQandA(models.Model):
 # Creating the Permission Model
 class Permission(models.Model):
     name = models.CharField(max_length=200) 
+    def __str__(self):
+        return self.name
 
 # Creating the Role Model
 class Role(models.Model):
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
+    def __str__(self):
+        return self.name
 
 # Creating the Page Model
 class Page(models.Model):
@@ -124,6 +128,8 @@ class Page(models.Model):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=1000)
     image = models.CharField(max_length=200)
+    def __str__(self):
+        return self.title
 
 
 
