@@ -4,6 +4,7 @@ import string
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 import jwt
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import JsonResponse
 from django.conf import settings
 from rest_framework import status
@@ -81,12 +82,12 @@ class UserLoginView(APIView):
             # If there is a user,
             if authuser is not None:
                 if authuser.auth_user_type == 'user':
-                    # create a JWT token
-                    token = generate_jwt_token(authuser)
+                    # create a JWT access token using simple jwt
+                    access_token = generate_jwt_token(authuser)
 
-                    # create and send a login response including the token
+                    # create and send a login response including the access token
                     login(request, authuser)
-                    return JsonResponse({'status': 'success', 'token': token}, status=200)
+                    return JsonResponse({'status': 'success', 'access_token': access_token}, status=200)
                 else:
                     return JsonResponse({'error': 'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
         
@@ -101,23 +102,17 @@ class UserLoginView(APIView):
         
 
 
-# Function that creates a JWT token
+# Function that creates a JWT token using simple jwt
 def generate_jwt_token(authuser):
-    # Set the expiration time (e.g., 1 hour from now)
-    expiration_time = datetime.utcnow() + timedelta(minutes=30)
 
-    # Creating the payload
-    payload = {
-        'auth_user_id' : authuser.id,
-        'auth_user_type': authuser.auth_user_type,
-        'exp': expiration_time,
-    }
+    #Generate a refresh token
+    refresh_token = RefreshToken.for_user(authuser)
 
-    # generate the JWT token
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm = 'HS256')
+    #Generate an access token for that refresh token
+    access_token = str(refresh_token.access_token)
 
-    # Returning the token
-    return token
+    # Returning the access token
+    return access_token
 
 
 
