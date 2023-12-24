@@ -15,11 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from tsd_main_app.mobile_app_views import UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('api/wa/',include('tsd_main_app.urls')),
 
     #URL of registering the user
     path('register/', UserRegisterView.as_view(), name='register-user'),
