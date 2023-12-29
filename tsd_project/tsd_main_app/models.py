@@ -3,11 +3,49 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import date
 
+
+
+from django.db import models
+
+# Model for Page
+class Page(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.CharField(max_length=1000)
+    image = models.CharField(max_length=200)
+    fe_route = models.CharField(max_length=200, null=True)
+
+
+    def __str__(self):
+        return self.title
+
+# Model for Role
+class Role(models.Model):
+    name = models.CharField(max_length=200) 
+    pages = models.ManyToManyField(Page, through='RolePage')
+
+    def __str__(self):
+        return self.name
+
+# Model for RolePage
+class RolePage(models.Model):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    page = models.ForeignKey(Page, on_delete=models.CASCADE)
+    create = models.BooleanField(default=False)
+    read = models.BooleanField(default=False)
+    update = models.BooleanField(default=False)
+    delete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return 'Role: ' + self.role.name + ' -------------> Page: ' + self.page.title
+
+
+
 #Creating a custom user model to store authentication information
 class AuthUser(AbstractUser):
 
     #Declaring the field to include the user type (user, counselor, admin)
     auth_user_type = models.CharField(max_length=50)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.username
@@ -109,27 +147,9 @@ class QuizQandA(models.Model):
 
 
 
-# Creating the Permission Model
-class Permission(models.Model):
-    name = models.CharField(max_length=200) 
-    def __str__(self):
-        return self.name
-
-# Creating the Role Model
-class Role(models.Model):
-    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
-    def __str__(self):
-        return self.name
-
-# Creating the Page Model
-class Page(models.Model):
-    permission = models.ManyToManyField(Permission)
-    title = models.CharField(max_length=200)
-    description = models.CharField(max_length=1000)
-    image = models.CharField(max_length=200)
-    def __str__(self):
-        return self.title
 
 
+
+
+    
 

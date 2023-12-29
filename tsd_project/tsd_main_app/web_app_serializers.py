@@ -1,16 +1,11 @@
 from rest_framework import serializers
 from .models import AuthUser, Page, Role
 
-# class AdminUserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = AuthUser
-#         fields = ['id', 'username', 'auth_user_type']
-
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthUser
-        fields = ['id', 'username', 'password', 'auth_user_type']
+        fields = ['id', 'username', 'password', 'auth_user_type','role']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -30,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-       
+
 
 # Creating serializer for the Page Model
 class PageSerializer(serializers.ModelSerializer):
@@ -39,10 +34,12 @@ class PageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Creating serializer for the Role Model
+# Serializer for the Permission model, exposing all fields
 class RoleSerializer(serializers.ModelSerializer):
+    pages = PageSerializer(many=True, read_only=True)
     class Meta:
         model = Role
-        fields = '__all__'
+        fields = 'id', 'name', 'pages'
+
 
 
