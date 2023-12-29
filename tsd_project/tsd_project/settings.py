@@ -34,7 +34,7 @@ DEBUG = True
 # ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11']
 # settings.py
 
-ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11', 'localhost']
+ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11', 'localhost', '192.168.1.23']
 
 
 
@@ -136,7 +136,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'tsdproject',
         'USER': 'root',
-        'PASSWORD': 'root',
+        'PASSWORD': '20021028',
         'HOST': 'localhost',
         'PORT': '3306',
     }

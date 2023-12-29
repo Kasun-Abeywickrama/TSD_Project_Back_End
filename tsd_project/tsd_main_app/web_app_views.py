@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import AuthUser, Page, Role, RolePage
-from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer
+from .models import AuthUser, Page, Role, RolePage, Question, Answer, QuizQandA
+from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -180,6 +180,207 @@ class PageRetrieveUpdateDeleteView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
     
+
+
+
+
+# ------------------- Question Creating view ------------------------- #
+    
+class QuestionCreatingView(APIView):
+
+    def post(self, request):
+
+        question = request.data.get('question')
+        answers = request.data.get('answers', {})
+
+        question_serializer = QuestionSerializer(data = question)
+
+        if(question_serializer.is_valid()):
+
+            question_instance = question_serializer.save()
+
+            for answer in answers:
+                    answer['question'] = question_instance.id
+
+            answer_serializer = AnswerSerializer(data = answers, many = True)
+
+            if(answer_serializer.is_valid()):
+
+                answer_serializer.save()
+
+                return Response({'success': 'Question created successfully'}, status=201)
+            else:
+                question_instance.delete()
+                return Response(answer_serializer.errors,status=400)
+                    
+        else:
+            return Response(question_serializer.errors, status = 400)
+        
+
+        
+
+# ------------------- Question Sending view ------------------------- #
+
+class QuestionSendingView(APIView):
+
+    def get(self, request):
+
+        #Get the question ids that are already in the quiz qanda table
+        q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+        # Getting the questions that can be updated (excluding the questions that are already taken by users)
+        questions = Question.objects.exclude(id__in = q_and_a_question_id_list)
+
+        question_sending_serializer = QuestionSendingSerializer(data=questions, many=True)
+
+        return Response(question_sending_serializer.data, status=200)
+    
+
+
+# ------------------- Question Updating view ------------------------- #
+
+class QuestionUpdatingView(APIView):
+
+    def post(self, request):
+
+        #Get the data into variables
+        question_id = request.data.get('question_id')
+        question = request.data.get('question'),
+        answers = request.data.get('answers', {})
+
+        #Getting the question object related to that id
+        question_object = Question.objects.get(id = question_id)
+
+        #Check if there is a question object like that
+        if question_object is not None:
+
+            #Get the question ids that are in the quiz q and a table
+            q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+            #Check if the question id is not in the quiz q and a table
+            if question_object.id not in q_and_a_question_id_list:
+                
+                #Put the data into serializers and check the validation
+                question_update_serializer = QuestionSerializer(question_object, data=question, partial=True)
+
+                if(question_update_serializer.is_valid()):
+
+                    answer_replacing_serializer = AnswerSerializer(data=answers, many=True)
+
+                    if(answer_replacing_serializer.is_valid()):
+
+                        #Delete the entire set of answers for this question
+                        Answer.objects.filter(question=question_object.id).delete()
+
+                        #Saving the two serializers
+                        question_update_serializer.save()
+                        answer_replacing_serializer.save()
+
+                        return Response({'status': 'success'}, status=201)
+
+                    else:
+                        return Response(answer_replacing_serializer.errors, status=400)
+                else:
+                    return Response(question_update_serializer.errors, status=400)
+            else:
+                return Response({'Error':'Question has been taken by a user very rcently'}, status=400)
+        else:
+            return Response({'Error':'no question object found'}, status=400)
+        
+
+
+# ------------------- Question Deleting view ------------------------- #
+        
+class QuestionDeleteView(APIView):
+
+    def delete(self, request):
+
+        #Getting the question id into a variable
+
+        question_id = request.data.get('question_id')
+
+        #Get the object of that question id
+        question_object = Question.objects.get(id=question_id)
+
+        #Check if the question exists
+        if question_object is not None:
+
+            #Get the question ids that are in the quiz q and a table
+            q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+            #Check if the question is in the quiz q and a table
+            if question_object.id not in q_and_a_question_id_list:
+
+                #Delete all the answers related to this question
+                Answer.objects.filter(question=question_object.id).delete()
+
+                #Delete the question from the question table
+                question_object.delete()
+
+                return Response({'status': 'success'}, status=201)
+            
+            else:
+                return Response({'Error':'Question has been taken by a user very rcently'}, status=400)
+        else:
+            return Response({'Error':'no question object found'}, status=400)
+        
+
+
+# ------------------- Question selecting view ------------------------- #
+
+class QuestionSelectingView(APIView):
+
+    def get(self, request):
+
+        #getting the selected questions
+        question_objects = Question.objects.exclude(selected_order = 0).order_by('selected_order')
+
+        #Sending the questions and answers through the serializers
+        selected_question_sending_serializer = QuestionSendingSerializer(data=question_objects, many=True)
+
+        return Response(selected_question_sending_serializer.data, status=200)
+    
+
+    def post(self, request):
+
+        #Getting the list of question ids to a variable
+        selected_question_id_list = request.data
+
+        #Update all the question's selected_order attribute to 0
+        for question in Question.objects.all():
+
+            question.selected_order = 0
+            question.save()
+
+        #Updating the selected order of the relavant questions
+        for i in range(len(selected_question_id_list)):
+
+            selected_question_object = Question.objects.get(id = selected_question_id_list[i]['question_id'])
+            if selected_question_object is not None:
+                selected_question_object.selected_order = i+1
+                selected_question_object.save()
+            else:
+                return Response({'Error': 'No object found for that question id'}, status=400)
+
+        return Response({'status':'success'}, status=201)
+
+
+
+
+                
+
+
+
+
+
+
+
+        
+
+    
+
+    
+
 
 
 # -----------------  Role Model ApiView   ----------------- #

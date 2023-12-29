@@ -1,5 +1,5 @@
 from django.urls import path
-from .web_app_views import LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView
+from .web_app_views import LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView
 
 
 urlpatterns = [
@@ -10,6 +10,11 @@ urlpatterns = [
     path('page/', PageListCreateView.as_view(), name='page-list-create'),
     path('page/<int:pk>/',PageRetrieveUpdateDeleteView.as_view(), name='page-retrieve-update-delete'),
     path('roles/', RoleListCreateView.as_view(), name='role-list-create'),
+    path('create_question/', QuestionCreatingView.as_view(), name='create-question'),
+    path('send_questions/', QuestionSendingView.as_view(), name='send-questions'),
+    path('update_question/', QuestionUpdatingView.as_view(), name='update-question'),
+    path('delete_question/', QuestionDeleteView.as_view(), name='delete-question'),
+    path('select_question/', QuestionSelectingView.as_view(), name='select_question'),
 
 ]
 
