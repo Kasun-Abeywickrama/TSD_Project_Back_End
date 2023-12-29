@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import AuthUser, Page, Role, Question, Answer, QuizQandA
+from .models import AuthUser, Page, Role, RolePage, Question, Answer, QuizQandA
 from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
