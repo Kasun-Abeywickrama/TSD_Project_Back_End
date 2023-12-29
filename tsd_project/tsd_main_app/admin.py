@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AuthUser, Page, Permission, QuizQandA, QuizResult, Role, User, Question, Answer, Admin
+from .models import AuthUser, Page, QuizQandA, QuizResult, Role, RolePage, User, Question, Answer, Admin
 
 # Registering the custom user model
 admin.site.register(AuthUser)
@@ -23,12 +23,10 @@ admin.site.register(QuizQandA)
 admin.site.register(Admin)  
 
 #registering the Permission model
-admin.site.register(Permission)  
-
-#registering the Role model
 admin.site.register(Role)  
 
 #registering the Page model
 admin.site.register(Page)  
 
-
+# registering the Page model
+admin.site.register(RolePage)  
