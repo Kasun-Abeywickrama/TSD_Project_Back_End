@@ -12,8 +12,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from tsd_main_app.models import AuthUser, Question, QuizResult, User
-from tsd_main_app.mobile_app_serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
+from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, User
+from tsd_main_app.mobile_app_serializers import AppointmentSerializer, UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
 # Creating the view to register the user
@@ -396,7 +396,137 @@ class UserAuthUserDetailsUpdateView(APIView):
         else:
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
         
-    
+
+
+#Creating the view to send all the counselor details to the mobile application
+class SendCounselorDetailsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            #create a list to store the counselor deatils
+            counselor_details = []
+
+            #Check if there is a admin role named Counselor
+            counselor_role_object = Role.objects.get(name = "Counselor")
+
+            if counselor_role_object is not None:
+
+                #Get the counselor role id into a variable
+                counselor_role_id = counselor_role_object.id
+
+                #Get all the objects realated to that role id from the auth user table
+                counselors = AuthUser.objects.filter(role = counselor_role_id)
+
+                #if there are at least one instance of counselors
+                if counselors:
+
+                    #generate the counselor details for every object
+                    for counselor in counselors:
+
+                        #Get the admin details related to the counselor
+                        admin_object = Admin.objects.get(auth_user = counselor.id)
+
+                        #Adding the admin_details and the username (as the email address) to the declared list
+                        if admin_object is not None:
+
+                            if(admin_object.first_name is not None and admin_object.last_name is not None and admin_object.location is not None and admin_object.mobile_number is not None and admin_object.website is not None):
+
+                                counselor_details.append({
+                                    'auth_user_id': counselor.id,
+                                    'admin_id': admin_object.id,
+                                    'email':counselor.username,
+                                    'first_name': admin_object.first_name,
+                                    'last_name':admin_object.last_name,
+                                    'location': admin_object.location,
+                                    'mobile_number':admin_object.mobile_number,
+                                    'website':admin_object.website,
+                                })
+                    
+                    #Send the counselor data list to the frontend
+                    return JsonResponse({'counselor_details': counselor_details}, status=200)
+                
+                #If there are no counselors available
+                else:
+                    return JsonResponse({'counselor_details': counselor_details}, status=200)
+            
+            #If there is no admin role named Counselor, send the empty list to the frontend
+            else:
+                return JsonResponse({'counselor_details': counselor_details}, status=200)
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+
+# Creating the view to store the appointment details
+class MakeAppointmentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'user':
+        
+            #get the data set and add the accepted = false to it
+            appointment_data = request.data
+
+            appointment_data['accepted'] = False
+
+            #Putting the data to the serializer
+            appointment_making_serializer = AppointmentSerializer(data= appointment_data)
+
+            #Checking the serializer is valid
+            if appointment_making_serializer.is_valid():
+
+                #Saving the serializer
+                appointment_making_serializer.save()
+
+                return JsonResponse({'status' : 'success'}, status=201)
+            else:
+                return JsonResponse({'Errors': appointment_making_serializer.errors}, status=400)
+
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+
+
+# Creating the view to check whether there is any on going appointments
+class checkOngoingAppointmentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            # get all the appointments related to the quiz result id and admin id
+            appointments = Appointment.objects.filter(quiz_result = request.data.get('quiz_result'), admin = request.data.get('admin'))
+
+            #Check if there is at least one object
+            if appointments:
+
+                #Check whether there is a appointment which has accepted = False
+                for appointment in appointments:
+
+                    if(appointment.accepted == False):
+
+                        return JsonResponse({'can_make_appointment' : 'false'}, status=201)
+                
+                #If there is no appointments which has accepted = False, send true
+                return JsonResponse({'can_make_appointment' : 'true'}, status=201)
+            
+            #If there is no appointments, send true
+            else:
+                return JsonResponse({'can_make_appointment' : 'true'}, status=201)
+            
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 
 
 

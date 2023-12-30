@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from tsd_main_app.mobile_app_views import UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView
+from tsd_main_app.mobile_app_views import SendCounselorDetailsView, UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView, MakeAppointmentView, checkOngoingAppointmentView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -51,6 +51,15 @@ urlpatterns = [
     path('send_user_auth_user_details/', UserAuthUserDetailsSendingView.as_view(), name = 'send-user-auth-user-details'),
 
     #path to update user auth user details
-    path('update_user_auth_user_details/', UserAuthUserDetailsUpdateView.as_view(), name='update-user-auth-user-details')
+    path('update_user_auth_user_details/', UserAuthUserDetailsUpdateView.as_view(), name='update-user-auth-user-details'),
+
+    #path to send the counselor details 
+    path('send_counselor_details/', SendCounselorDetailsView.as_view(), name = 'send-counselor-details'),
+
+    #path to make the appointment 
+    path('make_appointment/', MakeAppointmentView.as_view(), name = 'make-appointment'),
+
+    #path to check ongoing appointment 
+    path('check_ongoing_appointment/', checkOngoingAppointmentView.as_view(), name = 'check-ongoing-appoointment'),
 
 ]
