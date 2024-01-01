@@ -75,6 +75,8 @@ class Question(models.Model):
 
     question = models.CharField(max_length=200)
     selected_order = models.CharField(max_length=5)
+    is_updating = models.BooleanField(default = False)
+    last_updated_timestamp = models.DateTimeField(null = True)
 
     def __str__(self):
         return self.question
@@ -155,7 +157,7 @@ class Appointment(models.Model):
 
     #Declaring the relavant fields
     requested_date = models.DateField(auto_now_add=True)
-    accepted = models.BooleanField()
+    is_checked = models.BooleanField()
     scheduled_date = models.DateField(null=True)
     scheduled_time_period = models.CharField(max_length = 100, null = True)
     response_description = models.CharField(max_length=1000, null=True)

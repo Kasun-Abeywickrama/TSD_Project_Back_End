@@ -40,11 +40,13 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = 'id', 'name', 'pages'
+
+        
 # Creating the question serializer
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'question']
+        fields = ['id', 'question', 'selected_order']
 
 
 # Creating the answer serializer
