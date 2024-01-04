@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import AuthUser, Page, Role, Question, Answer
+from .models import AuthUser, Page, Role, Question, Answer, QuizResult
+
 
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
@@ -71,4 +72,8 @@ class QuestionSendingSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'question', 'answers']
 
+class QuizResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizResult
+        fields = '__all__'
 
