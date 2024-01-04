@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AuthUser, Page, QuizResult, Role, Question, Answer
+from .models import AuthUser, Page, Role, Question, Answer, QuizResult
 
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
