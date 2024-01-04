@@ -45,8 +45,5 @@ class RoleSerializer(serializers.ModelSerializer):
 class QuizResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizResult
-        fields = [
-            'user', 'questions', 'score', 'dp_level', 'no_of_days',
-            'conclusion', 'counselor_or_not', 'date', 'time'
-        ]
+        fields = '__all__'
 
