@@ -2,9 +2,6 @@ from django.db.models.functions import TruncSecond
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import date
-
-
-
 from django.db import models
 
 # Model for Page
@@ -39,7 +36,6 @@ class RolePage(models.Model):
         return 'Role: ' + self.role.name + ' -------------> Page: ' + self.page.title
 
 
-
 #Creating a custom user model to store authentication information
 class AuthUser(AbstractUser):
 
@@ -60,7 +56,6 @@ class User(models.Model):
     #Declaring relavant fields
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
-    email = models.CharField(max_length=50, null=True)
     mobile_number = models.CharField(max_length=50, null=True)
     date_of_birth = models.DateField(null=True)
     
@@ -73,26 +68,15 @@ class User(models.Model):
             return age
         else:
             return "No Date of Birth"
-
-#Creating the Admin model
-class Admin(models.Model):
-
-    #Declaring 1 to 1 relationship between AuthUser model
-    auth_user = models.OneToOneField(AuthUser, on_delete=models.CASCADE)
-
-    #Declaring relavant fields
-    first_name = models.CharField(max_length=50, null=True)
-    last_name = models.CharField(max_length=50, null=True)
-    email = models.CharField(max_length=50, null=True)
-    mobile_number = models.CharField(max_length=50, null=True)
-    date_of_birth = models.DateField(null=True)  
-    
+            
 
 #Creating the Question model
 class Question(models.Model):
 
     question = models.CharField(max_length=200)
     selected_order = models.CharField(max_length=5)
+    is_updating = models.BooleanField(default = False)
+    last_updated_timestamp = models.DateTimeField(null = True)
 
     def __str__(self):
         return self.question
@@ -111,8 +95,6 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.answer
-
-
 
 
 #Creating the quiz_rsult model to store quiz results
@@ -144,6 +126,41 @@ class QuizQandA(models.Model):
 
     #Adding the other fields
     answer_id = models.CharField(max_length=30)
+
+
+
+#Creating the Admin model
+class Admin(models.Model):
+
+    #Declaring 1 to 1 relationship between AuthUser model
+    auth_user = models.OneToOneField(AuthUser, on_delete=models.CASCADE)
+
+    #Declaring the many to many relationship with the quiz result table
+    quiz_result = models.ManyToManyField(QuizResult, through='Appointment')
+
+    #Declaring relavant fields
+    first_name = models.CharField(max_length=50, null=True)
+    last_name = models.CharField(max_length=50, null=True)
+    mobile_number = models.CharField(max_length=50, null=True)
+    location = models.CharField(max_length=200, null=True)
+    website = models.CharField(max_length=200, null=True)
+
+
+# Creating the Appointment table 
+class Appointment(models.Model):
+
+    #Foreign key of the quiz result model
+    quiz_result = models.ForeignKey(QuizResult, on_delete=models.CASCADE)
+
+    #Foreign key of the admin model
+    admin = models.ForeignKey(Admin, on_delete=models.CASCADE)
+
+    #Declaring the relavant fields
+    requested_date = models.DateField(auto_now_add=True)
+    is_checked = models.BooleanField()
+    scheduled_date = models.DateField(null=True)
+    scheduled_time_period = models.CharField(max_length = 100, null = True)
+    response_description = models.CharField(max_length=1000, null=True)
 
 
 

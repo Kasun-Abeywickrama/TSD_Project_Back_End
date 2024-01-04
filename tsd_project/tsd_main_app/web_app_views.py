@@ -2,11 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import AuthUser, Page, Role, RolePage
-from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer
+from .models import AuthUser, Page, Role, RolePage, Question, Answer, QuizQandA
+from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
+from django.utils import timezone
 
 # Check if a role has a specific permission on a page.
 def is_permission(role_name, page_title, permission_type):
@@ -179,6 +180,245 @@ class PageRetrieveUpdateDeleteView(APIView):
             page.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
+    
+
+
+
+
+# ------------------- Question Creating view ------------------------- #
+    
+class QuestionCreatingView(APIView):
+
+    def post(self, request):
+
+        question = request.data.get('question')
+        answers = request.data.get('answers')
+
+        #Adding selected_order = 0 to the question data
+        question['selected_order'] = 0
+
+        question_serializer = QuestionSerializer(data = question)
+
+        if(question_serializer.is_valid()):
+
+            #Saving the question to the database
+            question_instance = question_serializer.save()
+
+            #Adding question id to every answer
+            for answer in answers:
+                    answer['question'] = question_instance.id
+
+            answer_serializer = AnswerSerializer(data = answers, many = True)
+
+            if(answer_serializer.is_valid()):
+
+                #Saving the answers in the database
+                answer_serializer.save()
+
+                return Response({'success': 'Question created successfully'}, status=201)
+            else:
+                question_instance.delete()
+                return Response(answer_serializer.errors,status=400)
+                    
+        else:
+            print(question_serializer.errors)
+            return Response(question_serializer.errors, status = 400)
+        
+
+        
+# ------------------- Question Sending view ------------------------- #
+
+class QuestionSendingView(APIView):
+
+    def get(self, request):
+
+        #Get the question ids that are already in the quiz qanda table
+        q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+        # Getting the questions that can be updated (excluding the questions that are already taken by users)
+        questions = Question.objects.exclude(id__in = q_and_a_question_id_list)
+
+        question_sending_serializer = QuestionSendingSerializer(questions, many=True)
+
+        return Response(question_sending_serializer.data, status=200)
+    
+
+
+# ------------------- Question Updating view ------------------------- #
+
+class QuestionUpdatingView(APIView):
+
+    def post(self, request):
+
+        #Get the data into variables
+        question_id = request.data.get('question_id')
+        question = request.data.get('question')
+        answers = request.data.get('answers', {})
+
+        try:
+
+            #Getting the question object related to that id
+            question_object = Question.objects.get(id = question_id)
+
+            #Making is_updating true on every question field
+            make_is_updating_true()
+
+            #Get the question ids that are in the quiz q and a table
+            q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+            #Check if the question id is not in the quiz q and a table
+            if question_object.id not in q_and_a_question_id_list:
+                    
+                #Put the data into serializers and check the validation
+                question_update_serializer = QuestionSerializer(question_object, data=question, partial=True)
+
+                if(question_update_serializer.is_valid()):
+
+                    #Adding question id to every answer
+                    for answer in answers:
+                        answer['question'] = question_id
+
+                    answer_replacing_serializer = AnswerSerializer(data=answers, many=True)
+
+                    if(answer_replacing_serializer.is_valid()):
+
+                        #Delete the entire set of answers for this question
+                        Answer.objects.filter(question=question_object.id).delete()
+
+                        #Saving the two serializers
+                        question_update_serializer.save()
+                        answer_replacing_serializer.save()
+
+                        #add the last updated timestamp to every question and also make is_updating false
+                        make_is_updating_false_and_timestamp()
+
+                        return Response({'status': 'success'}, status=201)
+
+                    else:
+                        make_is_updating_false_and_timestamp()
+                        return Response(answer_replacing_serializer.errors, status=400)
+                else:
+                    make_is_updating_false_and_timestamp()
+                    return Response(question_update_serializer.errors, status=400)
+            else:
+                make_is_updating_false_and_timestamp()
+                return Response({'Question has been taken by a user very recently'}, status=400)
+            
+        except Question.DoesNotExist:
+            return Response({'no question found'}, status=400)
+        
+
+
+# ------------------- Question Deleting view ------------------------- #
+        
+class QuestionDeleteView(APIView):
+
+    def post(self, request):
+
+        #Getting the question id into a variable
+
+        question_id = request.data.get('question_id')
+        print(question_id)
+
+        try:
+            #Get the object of that question id
+            question_object = Question.objects.get(id=question_id)
+
+            #make is_updating True
+            make_is_updating_true()
+
+            #Get the question ids that are in the quiz q and a table
+            q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
+
+            #Check if the question is in the quiz q and a table
+            if question_object.id not in q_and_a_question_id_list:
+
+                #Delete all the answers related to this question
+                Answer.objects.filter(question=question_object.id).delete()
+
+                #Delete the question from the question table
+                question_object.delete()
+
+                make_is_updating_false_and_timestamp()
+
+                return Response({'status': 'success'}, status=201)
+                
+            else:
+                make_is_updating_false_and_timestamp()
+                return Response({'Question has been taken by a user very recently'}, status=400)
+            
+        except Question.DoesNotExist:
+                return Response({'No question found'}, status=400)
+        
+
+
+# ------------------- Question selecting view ------------------------- #
+
+class QuestionSelectingView(APIView):
+
+    def get(self, request):
+
+        #getting the selected questions
+        selected_question_objects = Question.objects.exclude(selected_order = 0).order_by('selected_order')
+
+        selected_question_list = []
+
+        #the selected question ids
+        for selected_question in selected_question_objects:
+            selected_question_list.append({'id' : str(selected_question.id)})
+
+        #getting all of the questions
+        question_objects = Question.objects.all()
+
+        all_question_sending_serializer = QuestionSendingSerializer(question_objects, many=True)
+
+        return Response({'selected_questions':selected_question_list, 'all_questions': all_question_sending_serializer.data}, status=200)
+    
+
+    def post(self, request):
+
+        #Getting the list of question ids to a variable
+        selected_question_id_list = request.data.get('selected_question_id_list')
+
+        make_is_updating_true()
+
+        #Update all the question's selected_order attribute to 0
+        for question in Question.objects.all():
+
+            question.selected_order = 0
+            question.save()
+
+        #Updating the selected order of the relavant questions
+        for i in range(len(selected_question_id_list)):
+
+            try:
+                selected_question_object = Question.objects.get(id = selected_question_id_list[i]['id'])
+                selected_question_object.selected_order = i+1
+                selected_question_object.save()
+
+            except Question.DoesNotExist:
+                make_is_updating_false_and_timestamp()
+                return Response({'Question Not Found'}, status=400)
+
+        make_is_updating_false_and_timestamp()
+        return Response({'status':'success'}, status=201)
+    
+
+#Function that sets is_updating true in all the question fields
+def make_is_updating_true():
+    for question in Question.objects.all():
+        question.is_updating = True
+        question.save()
+    
+
+#Function that sets is_updating false and sets the timestamp
+def make_is_updating_false_and_timestamp():
+    last_updated_timestamp = timezone.now()
+
+    for question in Question.objects.all():
+        question.is_updating = False
+        question.last_updated_timestamp = last_updated_timestamp
+        question.save()
     
 
 

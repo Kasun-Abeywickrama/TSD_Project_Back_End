@@ -12,8 +12,8 @@ from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from tsd_main_app.models import AuthUser, Question, QuizResult, User
-from tsd_main_app.mobile_app_serializers import UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
+from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, User
+from tsd_main_app.mobile_app_serializers import AppointmentSerializer, UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
 # Creating the view to register the user
@@ -128,11 +128,28 @@ class QuizSendingView(APIView):
 
             #Getting the questions from the database
             questions = Question.objects.exclude(selected_order = 0).order_by('selected_order')
-            quiz_sending_serializer = QuestionSendingSerializer(questions, many=True)
 
-            #Sending the data to the frontend as a Json Response
-            return JsonResponse({'questions_and_answers' : quiz_sending_serializer.data}, status=200)
+            if questions:
 
+                #Get one question and check if the is_updating true
+                check_question = Question.objects.exclude(selected_order=0).first()
+                print(check_question)
+
+                if(check_question.is_updating == False):
+                
+                    quiz_sending_serializer = QuestionSendingSerializer(questions, many=True)
+                    print(check_question.last_updated_timestamp)
+
+                    #Sending the data and the last updated timestamp to the frontend as a Json Response
+                    return JsonResponse({'questions_and_answers' : quiz_sending_serializer.data, 'last_updated_timestamp': str(check_question.last_updated_timestamp)}, status=200)
+                
+                #If the is_updating is true send to the frontend, that questions are updating
+                else:
+                    return JsonResponse({'quiz_updating': 'The quiz is in maintenance. Please try again later'}, status = 400)
+            
+            #If there are no questions send to the frontend, that questions are updating
+            else:
+                return JsonResponse({'quiz_updating': 'The quiz is in maintenance. Please try again later'}, status = 400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
 
@@ -148,50 +165,73 @@ class QuizResultStoringView(APIView):
         # Check if the auth user type is user
         if request.user.auth_user_type == 'user':
 
-            # Getting the user_id through the auth_user_id
-            user = User.objects.get(auth_user = request.user.id)
-            print(user)
+            try:
+                # Getting the user_id through the auth_user_id
+                user = User.objects.get(auth_user = request.user.id)
+                print(user)
 
-            user_id = user.id
+                user_id = user.id
 
-            #Adding the user id to the data set
-            quiz_result_data = request.data.get('quiz_result_data', {})
-            quiz_q_and_a_data = request.data.get('quiz_q_and_a_data', {})
+                #Get a question instance and check the is_updating status
+                check_question = Question.objects.first()
 
-            quiz_result_data['user'] = user_id
+                if check_question:
 
-            #Putting the data sets to the serializers and validating them, saving them
-            quiz_result_serializer = QuizResultSerializer(data = quiz_result_data)
+                    if(check_question.is_updating == False):
 
-            #Checking if the quiz result serializer is valid
-            if quiz_result_serializer.is_valid():
+                        print(request.data.get('last_updated_timestamp'))
+                        print(check_question.last_updated_timestamp)
+                        
+                        #Check if the quiz is updated within the time that the user doing it
+                        if(str(check_question.last_updated_timestamp) == request.data.get('last_updated_timestamp')):
 
-                #saving the quiz result data
-                quiz_result_instance = quiz_result_serializer.save()
+                            #Adding the user id to the data set
+                            quiz_result_data = request.data.get('quiz_result_data', {})
+                            quiz_q_and_a_data = request.data.get('quiz_q_and_a_data', {})
 
-                #Adding quiz result id to every data map of the quiz q and a data
-                for quiz_q_and_a_item in quiz_q_and_a_data:
-                    quiz_q_and_a_item['quiz_result'] = quiz_result_instance.id
+                            quiz_result_data['user'] = user_id
 
-                #putting the data to the quiz q and a serializer
-                quiz_q_and_a_serializer = QuizQandASerializer(data=quiz_q_and_a_data, many=True)
+                            #Putting the data sets to the serializers and validating them, saving them
+                            quiz_result_serializer = QuizResultSerializer(data = quiz_result_data)
 
-                #Checking if the quiz q and a serializer is valid
-                if quiz_q_and_a_serializer.is_valid():
+                            #Checking if the quiz result serializer is valid
+                            if quiz_result_serializer.is_valid():
 
-                    #saving the quiz questions and answers
-                    quiz_q_and_a_serializer.save()
+                                #saving the quiz result data
+                                quiz_result_instance = quiz_result_serializer.save()
 
-                    #returning the response that contains the quiz result id
-                    return JsonResponse({'Status': 'Data Submitted submitted successfully', 'quiz_result_id': quiz_result_instance.id}, status=201)
-                
+                                #Adding quiz result id to every data map of the quiz q and a data
+                                for quiz_q_and_a_item in quiz_q_and_a_data:
+                                    quiz_q_and_a_item['quiz_result'] = quiz_result_instance.id
+
+                                #putting the data to the quiz q and a serializer
+                                quiz_q_and_a_serializer = QuizQandASerializer(data=quiz_q_and_a_data, many=True)
+
+                                #Checking if the quiz q and a serializer is valid
+                                if quiz_q_and_a_serializer.is_valid():
+
+                                    #saving the quiz questions and answers
+                                    quiz_q_and_a_serializer.save()
+
+                                    #returning the response that contains the quiz result id
+                                    return JsonResponse({'Status': 'Data Submitted submitted successfully', 'quiz_result_id': quiz_result_instance.id}, status=201)
+                                
+                                else:
+                                    #Deleting the created quiz result record
+                                    quiz_result_instance.delete()
+                                    return JsonResponse({'errors': quiz_q_and_a_serializer.errors},status=400)
+                                
+                            else:
+                                return JsonResponse({'errors':quiz_result_serializer.errors},status=400)
+                        else:
+                            return JsonResponse({'quiz_updated': 'Quiz has been updated'}, status=400)
+                    else:
+                        return JsonResponse({'quiz_updating': 'Quiz is under maintenance'}, status=400)
                 else:
-                    #Deleting the created quiz result record
-                    quiz_result_instance.delete()
-                    return JsonResponse({'errors': quiz_q_and_a_serializer.errors},status=400)
+                    return JsonResponse({'quiz_updating': 'Quiz is under maintenance'}, status=400)
                 
-            else:
-                return JsonResponse({'errors':quiz_result_serializer.errors},status=400)
+            except User.DoesNotExist:
+                return JsonResponse({'Not Found':'No user object found'}, status = 400)
         
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
@@ -215,11 +255,11 @@ class QuizResultSendingView(APIView):
             #Checking if the serializer is valid
             if quiz_result_sending_serializer.is_valid():
 
-                #Get the quiz result data into a variable
-                sending_quiz_result = QuizResult.objects.get(id = quiz_result_sending_serializer.validated_data['quiz_result_id'])
+                try:
 
-                # Check if a quiz result was found
-                if sending_quiz_result is not None:
+                    #Get the quiz result data into a variable
+                    sending_quiz_result = QuizResult.objects.get(id = quiz_result_sending_serializer.validated_data['quiz_result_id'])
+
                     # Create the map with the quiz result data
                     quiz_result_data = {
                         'date': sending_quiz_result.date,
@@ -232,10 +272,9 @@ class QuizResultSendingView(APIView):
                     print(quiz_result_data)
                     #Send the quiz result data to the frontend as a Json Response
                     return JsonResponse(quiz_result_data,status = 200)
-                
-                else:
-                    print("No result data found")
-                    return JsonResponse({'error':'no result data found'}, status=400)
+                    
+                except QuizResult.DoesNotExist:
+                    return JsonResponse({'Not Found':'No quiz result object found'}, status=400)
                 
             else:
                 return JsonResponse(quiz_result_sending_serializer.errors, status = 400)
@@ -253,19 +292,24 @@ class PreviousQuizResultSendingView(APIView):
         #Checking the auth user type
         if request.user.auth_user_type == 'user':
 
-            # Getting the user_id through the auth_user_id
-            user = User.objects.get(auth_user = request.user.id)
-            print(user)
+            try:
 
-            user_id = user.id
+                # Getting the user_id through the auth_user_id
+                user = User.objects.get(auth_user = request.user.id)
+                print(user)
 
-            #Getting the relavant data set from the database
-            previous_quiz_results = QuizResult.objects.filter(user = user_id)
+                user_id = user.id
 
-            previous_quiz_result_serializer = PreviousQuizResultSendingSerializer(previous_quiz_results, many = True)
+                #Getting the relavant data set from the database
+                previous_quiz_results = QuizResult.objects.filter(user = user_id)
 
-            #Sending the data to the frontend as a Json Response
-            return JsonResponse({'previous_quiz_results' : previous_quiz_result_serializer.data}, status=200)
+                previous_quiz_result_serializer = PreviousQuizResultSendingSerializer(previous_quiz_results, many = True)
+
+                #Sending the data to the frontend as a Json Response
+                return JsonResponse({'previous_quiz_results' : previous_quiz_result_serializer.data}, status=200)
+            
+            except User.DoesNotExist:
+                return JsonResponse({'Not Found':'No user object found'}, status=400)
         
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
@@ -281,23 +325,27 @@ class UserPersonalDetailsSendingView(APIView):
         #Checking the auth user type
         if request.user.auth_user_type == 'user':
 
-            #Getting the user_id through the auth_user_id
-            user = User.objects.get(auth_user = request.user.id)
-            print(user)
+            try:
+                #Getting the user_id through the auth_user_id
+                user = User.objects.get(auth_user = request.user.id)
+                print(user)
 
-            user_id = user.id
+                user_id = user.id
 
-            #Getting the user object from the databse
-            user_instance = User.objects.get(id = user_id)
+                #Getting the user object from the databse
+                user_instance = User.objects.get(id = user_id)
 
-            print(user_instance.age)
+                print(user_instance.age)
 
-            #Putting the data to serailizer and then sending them as a json response
-            user_personal_details_sending_serializer = UserSerializer(user_instance)
+                #Putting the data to serailizer and then sending them as a json response
+                user_personal_details_sending_serializer = UserSerializer(user_instance)
 
-            print(user_personal_details_sending_serializer.data)
+                print(user_personal_details_sending_serializer.data)
 
-            return JsonResponse({'user_personal_details':user_personal_details_sending_serializer.data},status = 200)
+                return JsonResponse({'user_personal_details':user_personal_details_sending_serializer.data},status = 200)
+            
+            except User.DoesNotExist:
+                return JsonResponse({'Not Found':'No user object found'}, status=400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
 
@@ -312,26 +360,31 @@ class UserPersonalDetailsUpdateView(APIView):
         #Checking the auth user type
         if request.user.auth_user_type == 'user':
             
-            #Getting the user_id through the auth_user_id
-            user = User.objects.get(auth_user = request.user.id)
-            print(user)
+            try:
 
-            user_id = user.id
+                #Getting the user_id through the auth_user_id
+                user = User.objects.get(auth_user = request.user.id)
+                print(user)
 
-            #Get the user instance for that id
-            user_instance = User.objects.get(id=user_id)
+                user_id = user.id
 
-            #Updating the data through the serializer
-            user_personal_details_updating_serializer = UserSerializer(user_instance, data = request.data, partial=True)
+                #Get the user instance for that id
+                user_instance = User.objects.get(id=user_id)
 
-            if user_personal_details_updating_serializer.is_valid():
+                #Updating the data through the serializer
+                user_personal_details_updating_serializer = UserSerializer(user_instance, data = request.data, partial=True)
 
-                user_personal_details_updating_serializer.save()
+                if user_personal_details_updating_serializer.is_valid():
 
-                return JsonResponse({'Suceess': 'Data updated successfully'}, status=201)
+                    user_personal_details_updating_serializer.save()
 
-            else:
-                return JsonResponse({'Error': user_personal_details_updating_serializer.errors}, status=400)
+                    return JsonResponse({'Suceess': 'Data updated successfully'}, status=201)
+
+                else:
+                    return JsonResponse({'Error': user_personal_details_updating_serializer.errors}, status=400)
+                
+            except User.DoesNotExist:
+                return JsonResponse({'Not Found':'No user object found'}, status=400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
         
@@ -349,13 +402,18 @@ class UserAuthUserDetailsSendingView(APIView):
             #Getting the auth_user_id to a variable
             auth_user_id = request.user.id
 
-            #Getting the object of that auth user id
-            auth_user_object = AuthUser.objects.get(id = auth_user_id)
+            try:
 
-            #Putting it to the serializer and sending the serializer data to the frontend
-            user_auth_user_details_sending_serializer = AuthUserSerializer(auth_user_object)
+                #Getting the object of that auth user id
+                auth_user_object = AuthUser.objects.get(id = auth_user_id)
 
-            return JsonResponse({'user_auth_user_details': user_auth_user_details_sending_serializer.data}, status=200)
+                #Putting it to the serializer and sending the serializer data to the frontend
+                user_auth_user_details_sending_serializer = AuthUserSerializer(auth_user_object)
+
+                return JsonResponse({'user_auth_user_details': user_auth_user_details_sending_serializer.data}, status=200)
+            
+            except AuthUser.DoesNotExist:
+                return JsonResponse({'Not Found':'No Auth user object found'}, status = 400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
         
@@ -396,7 +454,147 @@ class UserAuthUserDetailsUpdateView(APIView):
         else:
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
         
-    
+
+
+#Creating the view to send all the counselor details to the mobile application
+class SendCounselorDetailsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        #Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            #create a list to store the counselor deatils
+            counselor_details = []
+
+            try:
+
+                #Check if there is a admin role named Counselor
+                counselor_role_object = Role.objects.get(name = "Counselor")
+
+                #Get the counselor role id into a variable
+                counselor_role_id = counselor_role_object.id
+
+                #Get all the objects realated to that role id from the auth user table
+                counselors = AuthUser.objects.filter(role = counselor_role_id)
+
+                #if there are at least one instance of counselors
+                if counselors:
+
+                    #generate the counselor details for every object
+                    for counselor in counselors:
+
+                        try:
+                            #Get the admin details related to the counselor
+                            admin_object = Admin.objects.get(auth_user = counselor.id)
+
+                            if(admin_object.first_name is not None and admin_object.last_name is not None and admin_object.location is not None and admin_object.mobile_number is not None and admin_object.website is not None):
+
+                                counselor_details.append({
+                                    'auth_user_id': counselor.id,
+                                    'admin_id': admin_object.id,
+                                    'email':counselor.username,
+                                    'first_name': admin_object.first_name,
+                                    'last_name':admin_object.last_name,
+                                    'location': admin_object.location,
+                                    'mobile_number':admin_object.mobile_number,
+                                    'website':admin_object.website,
+                                })
+                        except Admin.DoesNotExist:
+                            return JsonResponse({'Not Found':'Admin object not found'}, status=400)
+                    
+                    #Send the counselor data list to the frontend
+                    return JsonResponse({'counselor_details': counselor_details}, status=200)
+                
+                #If there are no counselors available
+                else:
+                    return JsonResponse({'counselor_details': counselor_details}, status=200)
+            
+            #If there is no admin role named Counselor, send the empty list to the frontend
+            except Role.DoesNotExist:
+                return JsonResponse({'counselor_details': counselor_details}, status=200)
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+
+# Creating the view to store the appointment details
+class MakeAppointmentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            try:
+
+                #Check if an counselor is available with that id
+                requested_counselor = Admin.objects.get(id = request.data.get('admin'))
+
+                print(requested_counselor.id)
+            
+                #get the data set and add the accepted = false to it
+                appointment_data = request.data
+
+                appointment_data['is_checked'] = False
+
+                #Putting the data to the serializer
+                appointment_making_serializer = AppointmentSerializer(data= appointment_data)
+
+                #Checking the serializer is valid
+                if appointment_making_serializer.is_valid():
+
+                    #Saving the serializer
+                    appointment_making_serializer.save()
+
+                    return JsonResponse({'status' : 'success'}, status=201)
+                else:
+                    return JsonResponse({'Errors': appointment_making_serializer.errors}, status=400)
+                
+            except Admin.DoesNotExist:
+                return JsonResponse({'counselor_deleted': 'counselor is not available' }, status=400)
+
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+
+
+# Creating the view to check whether there is any on going appointments
+class checkOngoingAppointmentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'user':
+
+            # get all the appointments related to the quiz result id and admin id
+            appointments = Appointment.objects.filter(quiz_result = request.data.get('quiz_result'), admin = request.data.get('admin'))
+
+            #Check if there is at least one object
+            if appointments:
+
+                #Check whether there is a appointment which has accepted = False
+                for appointment in appointments:
+
+                    if(appointment.is_checked == False):
+
+                        return JsonResponse({'can_make_appointment' : 'false'}, status=201)
+                
+                #If there is no appointments which has accepted = False, send true
+                return JsonResponse({'can_make_appointment' : 'true'}, status=201)
+            
+            #If there is no appointments, send true
+            else:
+                return JsonResponse({'can_make_appointment' : 'true'}, status=201)
+            
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 
 
 
