@@ -1,9 +1,10 @@
+from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import AuthUser, Page, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import PageSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
+from .models import Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
+from .web_app_serializers import AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -509,4 +510,73 @@ class RoleRetrieveUpdateDeleteView(APIView):
 
 
 # -----------------  Results Model ApiView   ----------------- #
+class ResultsListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request, format=None):
+        results = QuizResult.objects.all()
+        serializer = QuizResultSerializer(results, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request, format=None):
+        serializer = QuizResultSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ResultsRetrieveUpdateDeleteView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return QuizResult.objects.get(pk=pk)
+        except QuizResult.DoesNotExist:
+            return None
+
+    def get(self, request, pk, format=None):
+        result = self.get_object(pk)
+        if result:
+            serializer = QuizResultSerializer(result)
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk, format=None):
+        result = self.get_object(pk)
+        if result:
+            serializer = QuizResultSerializer(result, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            
+
+class SetAppointment(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Appointment.objects.get(pk=pk)
+        except Appointment.DoesNotExist:
+            print(f"Appointment with pk={pk} does not exist.")
+            raise Http404
+
+
+    def put(self, request, pk, format=None):
+        appointment = self.get_object(pk)
+        serializer = AppointmentSerializer(appointment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            print(serializer.errors)  # Add this line to print validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def patch(self, request, pk, format=None):
+        appointment = self.get_object(pk)
+        serializer = AppointmentSerializer(appointment, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

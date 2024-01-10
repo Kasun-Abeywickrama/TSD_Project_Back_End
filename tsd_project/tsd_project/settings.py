@@ -102,10 +102,12 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = 'tsd_main_app.AuthUser'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:54910',  # Flutter app url
+    'http://localhost:54910', # Flutter app url
+    'http://localhost:3000'  
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+
 
 ROOT_URLCONF = 'tsd_project.urls'
 
@@ -134,9 +136,9 @@ WSGI_APPLICATION = 'tsd_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tsdproject',
+        'NAME': 'tsdproject1',
         'USER': 'root',
-        'PASSWORD': '20021028',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',
     }
