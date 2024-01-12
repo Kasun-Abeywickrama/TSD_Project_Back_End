@@ -101,7 +101,7 @@ class Answer(models.Model):
 #Creating the quiz_rsult model to store quiz results
 class QuizResult(models.Model):
     # Adding the foreign key field from the User table (1:many relationship)
-    user = models.ForeignKey(AuthUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     # Creating the many to many relationship between the question and quiz result table
     questions = models.ManyToManyField(Question, through='QuizQandA')

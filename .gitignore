@@ -5,3 +5,10 @@ __pycache__/
 db.sqlite3
 media/
 venv/
+
+
+# Ignore Django migration files
+**/migrations/*.py
+**/migrations/*.pyc
+
+
