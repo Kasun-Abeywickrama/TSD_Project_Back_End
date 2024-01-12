@@ -12,20 +12,20 @@ from rest_framework.views import APIView
 from rest_framework.generics import UpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, User
-from tsd_main_app.mobile_app_serializers import AppointmentSerializer, UserLoginSerializer, AuthUserSerializer, UserSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
+from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, Patient
+from tsd_main_app.mobile_app_serializers import AppointmentSerializer, PatientLoginSerializer, AuthUserSerializer, PatientSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
-# Creating the view to register the user
-class UserRegisterView(APIView):
+# Creating the view to register the patient
+class PatientRegisterView(APIView):
     def post(self, request):
 
         #Getting both data sets for the two models
         auth_user_data = request.data.get('auth_user', {})
-        user_data = request.data.get('user', {})
+        patient_data = request.data.get('patient', {})
 
-        #Putting auth_user_type = user in the auth_user_data set
-        auth_user_data['auth_user_type'] = 'user'
+        #Putting auth_user_type = patient in the auth_user_data set
+        auth_user_data['auth_user_type'] = 'patient'
         
         # Putting the data set inside the auth user serializer
         auth_user_serializer = AuthUserSerializer(data = auth_user_data)
@@ -39,38 +39,38 @@ class UserRegisterView(APIView):
             print(auth_user_serializer.errors)
             return JsonResponse({'status': 'Data is not valid','errors': auth_user_serializer.errors}, status=400)
         
-        #Putting the auth_user_id in the user data set
-        user_data['auth_user'] = auth_user_instance.id
+        #Putting the auth_user_id in the patient data set
+        patient_data['auth_user'] = auth_user_instance.id
 
-        # Putting the user data into the user serializer
-        user_serializer = UserSerializer(data = user_data)
+        # Putting the patient data into the patient serializer
+        patient_serializer = PatientSerializer(data = patient_data)
 
         #Checking the data validation
-        if(user_serializer.is_valid()):
+        if(patient_serializer.is_valid()):
 
             # Creating the new records in the tables
-            user_serializer.save()
+            patient_serializer.save()
 
             # Returning a success response to the fluttter terminal
             return JsonResponse({'status': 'success'}, status=201)
         else:
             # If the data is not valid, sending the relavant error to the frontend and delete the created auth user record
             auth_user_instance.delete()
-            return JsonResponse({'status': 'Data is not valid','errors': user_serializer.errors}, status=400)
+            return JsonResponse({'status': 'Data is not valid','errors': patient_serializer.errors}, status=400)
     
 
 
-# Creating the view to login the user
-class UserLoginView(APIView):
+# Creating the view to login the patient
+class PatientLoginView(APIView):
     def post(self,request):
 
         # Putting the login information to the serailizer
-        user_login_serializer = UserLoginSerializer(data = request.data)
+        patient_login_serializer = PatientLoginSerializer(data = request.data)
 
         #Checking if the data is valid
-        if(user_login_serializer.is_valid()):
-            username = user_login_serializer.validated_data['username']
-            password = user_login_serializer.validated_data['password']
+        if(patient_login_serializer.is_valid()):
+            username = patient_login_serializer.validated_data['username']
+            password = patient_login_serializer.validated_data['password']
 
             # Authenticating the user
             authuser = authenticate(request, username=username, password=password)
@@ -81,7 +81,7 @@ class UserLoginView(APIView):
         
             # If there is a user,
             if authuser is not None:
-                if authuser.auth_user_type == 'user':
+                if authuser.auth_user_type == 'patient':
                     # create a JWT access token using simple jwt
                     access_token = generate_jwt_token(authuser)
 
@@ -121,8 +121,8 @@ class QuizSendingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Check if the auth user type is user
-        if request.user.auth_user_type == 'user':
+        # Check if the auth user type is patient
+        if request.user.auth_user_type == 'patient':
 
             print(request.user.auth_user_type)
 
@@ -162,15 +162,15 @@ class QuizResultStoringView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Check if the auth user type is user
-        if request.user.auth_user_type == 'user':
+        # Check if the auth user type is patient
+        if request.user.auth_user_type == 'patient':
 
             try:
-                # Getting the user_id through the auth_user_id
-                user = User.objects.get(auth_user = request.user.id)
-                print(user)
+                # Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
 
-                user_id = user.id
+                patient_id = patient.id
 
                 #Get a question instance and check the is_updating status
                 check_question = Question.objects.first()
@@ -189,7 +189,7 @@ class QuizResultStoringView(APIView):
                             quiz_result_data = request.data.get('quiz_result_data', {})
                             quiz_q_and_a_data = request.data.get('quiz_q_and_a_data', {})
 
-                            quiz_result_data['user'] = user_id
+                            quiz_result_data['patient'] = patient_id
 
                             #Putting the data sets to the serializers and validating them, saving them
                             quiz_result_serializer = QuizResultSerializer(data = quiz_result_data)
@@ -230,8 +230,8 @@ class QuizResultStoringView(APIView):
                 else:
                     return JsonResponse({'quiz_updating': 'Quiz is under maintenance'}, status=400)
                 
-            except User.DoesNotExist:
-                return JsonResponse({'Not Found':'No user object found'}, status = 400)
+            except Patient.DoesNotExist:
+                return JsonResponse({'Not Found':'No patient object found'}, status = 400)
         
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
@@ -246,8 +246,8 @@ class QuizResultSendingView(APIView):
 
     def post(self, request):
 
-        # Check if the auth user type is user
-        if request.user.auth_user_type == 'user':
+        # Check if the auth user type is patient
+        if request.user.auth_user_type == 'patient':
 
             #Putting the data to the serializer
             quiz_result_sending_serializer = QuizResultSendingSerializer(data = request.data)
@@ -290,101 +290,101 @@ class PreviousQuizResultSendingView(APIView):
 
     def get(self,request):
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             try:
 
-                # Getting the user_id through the auth_user_id
-                user = User.objects.get(auth_user = request.user.id)
-                print(user)
+                # Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
 
-                user_id = user.id
+                patient_id = patient.id
 
                 #Getting the relavant data set from the database
-                previous_quiz_results = QuizResult.objects.filter(user = user_id)
+                previous_quiz_results = QuizResult.objects.filter(patient = patient_id)
 
                 previous_quiz_result_serializer = PreviousQuizResultSendingSerializer(previous_quiz_results, many = True)
 
                 #Sending the data to the frontend as a Json Response
                 return JsonResponse({'previous_quiz_results' : previous_quiz_result_serializer.data}, status=200)
             
-            except User.DoesNotExist:
-                return JsonResponse({'Not Found':'No user object found'}, status=400)
+            except Patient.DoesNotExist:
+                return JsonResponse({'Not Found':'No Patient object found'}, status=400)
         
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
         
 
 
-#Creating the view to send the user personal details
-class UserPersonalDetailsSendingView(APIView):
+#Creating the view to send the Patient personal details
+class PatientPersonalDetailsSendingView(APIView):
 
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             try:
-                #Getting the user_id through the auth_user_id
-                user = User.objects.get(auth_user = request.user.id)
-                print(user)
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
 
-                user_id = user.id
+                patient_id = patient.id
 
-                #Getting the user object from the databse
-                user_instance = User.objects.get(id = user_id)
+                #Getting the patient object from the databse
+                patient_instance = Patient.objects.get(id = patient_id)
 
-                print(user_instance.age)
+                print(patient_instance.age)
 
                 #Putting the data to serailizer and then sending them as a json response
-                user_personal_details_sending_serializer = UserSerializer(user_instance)
+                patient_personal_details_sending_serializer = PatientSerializer(patient_instance)
 
-                print(user_personal_details_sending_serializer.data)
+                print(patient_personal_details_sending_serializer.data)
 
-                return JsonResponse({'user_personal_details':user_personal_details_sending_serializer.data},status = 200)
+                return JsonResponse({'patient_personal_details':patient_personal_details_sending_serializer.data},status = 200)
             
-            except User.DoesNotExist:
-                return JsonResponse({'Not Found':'No user object found'}, status=400)
+            except Patient.DoesNotExist:
+                return JsonResponse({'Not Found':'No Patient object found'}, status=400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
 
 
 
-#Creating the view to update user personal details
-class UserPersonalDetailsUpdateView(APIView):
+#Creating the view to update patient personal details
+class PatientPersonalDetailsUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
 
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
             
             try:
 
-                #Getting the user_id through the auth_user_id
-                user = User.objects.get(auth_user = request.user.id)
-                print(user)
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
 
-                user_id = user.id
+                patient_id = patient.id
 
-                #Get the user instance for that id
-                user_instance = User.objects.get(id=user_id)
+                #Get the patient instance for that id
+                patient_instance = Patient.objects.get(id=patient_id)
 
                 #Updating the data through the serializer
-                user_personal_details_updating_serializer = UserSerializer(user_instance, data = request.data, partial=True)
+                patient_personal_details_updating_serializer = PatientSerializer(patient_instance, data = request.data, partial=True)
 
-                if user_personal_details_updating_serializer.is_valid():
+                if patient_personal_details_updating_serializer.is_valid():
 
-                    user_personal_details_updating_serializer.save()
+                    patient_personal_details_updating_serializer.save()
 
                     return JsonResponse({'Suceess': 'Data updated successfully'}, status=201)
 
                 else:
-                    return JsonResponse({'Error': user_personal_details_updating_serializer.errors}, status=400)
+                    return JsonResponse({'Error': patient_personal_details_updating_serializer.errors}, status=400)
                 
-            except User.DoesNotExist:
-                return JsonResponse({'Not Found':'No user object found'}, status=400)
+            except Patient.DoesNotExist:
+                return JsonResponse({'Not Found':'No patient object found'}, status=400)
         else:
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
         
@@ -397,7 +397,7 @@ class UserAuthUserDetailsSendingView(APIView):
     def get(self,request):
 
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             #Getting the auth_user_id to a variable
             auth_user_id = request.user.id
@@ -425,7 +425,7 @@ class UserAuthUserDetailsUpdateView(APIView):
     def post(self,request):
 
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             #Getting the current password and new updating data to variables
             current_password = request.data.get('current_password')
@@ -463,7 +463,7 @@ class SendCounselorDetailsView(APIView):
     def get(self,request):
 
         #Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             #create a list to store the counselor deatils
             counselor_details = []
@@ -527,7 +527,7 @@ class MakeAppointmentView(APIView):
     def post(self, request):
 
         # Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             try:
 
@@ -571,7 +571,7 @@ class checkOngoingAppointmentView(APIView):
     def post(self, request):
 
         # Checking the auth user type
-        if request.user.auth_user_type == 'user':
+        if request.user.auth_user_type == 'patient':
 
             # get all the appointments related to the quiz result id and admin id
             appointments = Appointment.objects.filter(quiz_result = request.data.get('quiz_result'), admin = request.data.get('admin'))

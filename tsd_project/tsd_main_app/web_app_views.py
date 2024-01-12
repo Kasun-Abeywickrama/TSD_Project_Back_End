@@ -67,18 +67,18 @@ class RegisterView(generics.CreateAPIView):
         userName = request.data.get('username')
         password = request.data.get('password')
 
-        # if not userName or not password:
-        #     return Response({"error: Both Username and Password are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not userName or not password:
+            return Response({"error: Both Username and Password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if AuthUser.objects.filter(username=userName).exists():
-        #     return Response({"error: Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        if AuthUser.objects.filter(username=userName).exists():
+            return Response({"error: Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # if len(password) < 8:
-        #     return Response({"error: Password must be at least 8 characters"}, status=status.HTTP_400_BAD_REQUEST)
+        if len(password) < 8:
+            return Response({"error: Password must be at least 8 characters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # # Check if the user has permission to access the page
-        # if not is_permission(request.user.role, 'Accounts', 'create'):
-        #     return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'create'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -506,7 +506,4 @@ class RoleRetrieveUpdateDeleteView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
     
-
-
-# -----------------  Results Model ApiView   ----------------- #
 

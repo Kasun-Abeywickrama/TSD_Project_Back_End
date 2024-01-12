@@ -1,11 +1,11 @@
 from django.contrib import admin
-from .models import Appointment, AuthUser, Page, QuizQandA, QuizResult, Role, RolePage, User, Question, Answer, Admin
+from .models import Appointment, AuthUser, Page, QuizQandA, QuizResult, Role, RolePage, Patient, Question, Answer, Admin
 
 # Registering the custom user model
 admin.site.register(AuthUser)
 
-#Registering the User model
-admin.site.register(User)
+#Registering the Patient model
+admin.site.register(Patient)
 
 #Resgistering the Question model
 admin.site.register(Question)

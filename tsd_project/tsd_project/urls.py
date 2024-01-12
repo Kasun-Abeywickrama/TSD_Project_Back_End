@@ -16,18 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from tsd_main_app.mobile_app_views import SendCounselorDetailsView, UserRegisterView, UserLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, UserPersonalDetailsSendingView, UserPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView, MakeAppointmentView, checkOngoingAppointmentView
+from tsd_main_app.mobile_app_views import SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, UserAuthUserDetailsSendingView, UserAuthUserDetailsUpdateView, MakeAppointmentView, checkOngoingAppointmentView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('api/wa/',include('tsd_main_app.urls')),
 
-    #URL of registering the user
-    path('register/', UserRegisterView.as_view(), name='register-user'),
+    #URL of registering the patient
+    path('register/', PatientRegisterView.as_view(), name='register-patient'),
     
-    #URL of user login
-    path('login/', UserLoginView.as_view(), name='login-user'),
+    #URL of patient login
+    path('login/', PatientLoginView.as_view(), name='login-patient'),
 
     #URL of sending questions and answers
     path('quiz_send/',QuizSendingView.as_view(), name='quiz-send'),
@@ -41,11 +41,11 @@ urlpatterns = [
     #URL to send the previous quiz results
     path('view_previous_quiz_results/', PreviousQuizResultSendingView.as_view(), name='view-previous-quiz-results'),
 
-    #URL to send the user personal details
-    path('send_user_personal_details/', UserPersonalDetailsSendingView.as_view(), name='send-user-personal-details'),
+    #URL to send the patient personal details
+    path('send_patient_personal_details/', PatientPersonalDetailsSendingView.as_view(), name='send-patient-personal-details'),
 
-    #URL to update the user personal details
-    path('update_user_personal_details/', UserPersonalDetailsUpdateView.as_view(), name='update-user-personal-details'),
+    #URL to update the patient personal details
+    path('update_patient_personal_details/', PatientPersonalDetailsUpdateView.as_view(), name='update-patient-personal-details'),
 
     #Path to send user auth user details
     path('send_user_auth_user_details/', UserAuthUserDetailsSendingView.as_view(), name = 'send-user-auth-user-details'),

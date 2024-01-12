@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Appointment, AuthUser, QuizQandA, QuizResult, User, Question, Answer
+from .models import Appointment, AuthUser, QuizQandA, QuizResult, Patient, Question, Answer
 
 #Creating the model serializer for auth user model
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -27,10 +27,10 @@ class AuthUserSerializer(serializers.ModelSerializer):
         return instance
     
 
-#Creating the model serializer for User model
-class UserSerializer(serializers.ModelSerializer):
+#Creating the model serializer for Patient model
+class PatientSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = Patient
         fields = '__all__'
 
     first_name = serializers.CharField(required=False)
@@ -40,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 #Creating a serializer to validate the login information
-class UserLoginSerializer(serializers.Serializer):
+class PatientLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 

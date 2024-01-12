@@ -42,13 +42,14 @@ class AuthUser(AbstractUser):
     #Declaring the field to include the user type (user, counselor, admin)
     auth_user_type = models.CharField(max_length=50)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
+    age = models.IntegerField(null = True)
 
     def __str__(self):
         return self.username
     
 
-#Creating the User model
-class User(models.Model):
+#Creating the Patient model
+class Patient(models.Model):
 
     #Declaring 1 to 1 relationship between AuthUser model
     auth_user = models.OneToOneField(AuthUser, on_delete=models.CASCADE)
@@ -99,8 +100,8 @@ class Answer(models.Model):
 
 #Creating the quiz_rsult model to store quiz results
 class QuizResult(models.Model):
-    # Adding the foreign key field from the User table (1:many relationship)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # Adding the foreign key field from the patient table (1:many relationship)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
 
     # Creating the many to many relationship between the question and quiz result table
     questions = models.ManyToManyField(Question, through='QuizQandA')
@@ -113,6 +114,10 @@ class QuizResult(models.Model):
     counselor_or_not = models.CharField(max_length=1)
     date = models.DateField(auto_now_add=True)
     time = models.TimeField(auto_now_add=True)
+    is_seen = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.id
     
 
 
