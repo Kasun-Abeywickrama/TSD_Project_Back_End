@@ -1,5 +1,5 @@
 from django.urls import path
-from .web_app_views import LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, ResultsListCreateView, RoleListCreateView, SetAppointment, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView,ResultsRetrieveUpdateDeleteView
+from .web_app_views import LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView
 
 
 urlpatterns = [
@@ -18,6 +18,7 @@ urlpatterns = [
     path('update_question/', QuestionUpdatingView.as_view(), name='update-question'),
     path('delete_question/', QuestionDeleteView.as_view(), name='delete-question'),
     path('select_question/', QuestionSelectingView.as_view(), name='select_question'),
+
 ]
 
 

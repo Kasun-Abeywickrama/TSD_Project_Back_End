@@ -1,16 +1,10 @@
 
-from datetime import datetime, timedelta
-import string
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-import jwt
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.http import JsonResponse
-from django.conf import settings
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.generics import UpdateAPIView
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, Patient
 from tsd_main_app.mobile_app_serializers import AppointmentSerializer, PatientLoginSerializer, AuthUserSerializer, PatientSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
@@ -182,10 +176,10 @@ class QuizResultStoringView(APIView):
                         print(request.data.get('last_updated_timestamp'))
                         print(check_question.last_updated_timestamp)
                         
-                        #Check if the quiz is updated within the time that the user doing it
+                        #Check if the quiz is updated within the time that the patient doing it
                         if(str(check_question.last_updated_timestamp) == request.data.get('last_updated_timestamp')):
 
-                            #Adding the user id to the data set
+                            #Adding the patient id to the data set
                             quiz_result_data = request.data.get('quiz_result_data', {})
                             quiz_q_and_a_data = request.data.get('quiz_q_and_a_data', {})
 
@@ -390,8 +384,8 @@ class PatientPersonalDetailsUpdateView(APIView):
         
 
 
-#Creating the view to send the user auth user details
-class UserAuthUserDetailsSendingView(APIView):
+#Creating the view to send the patient auth user details
+class PatientAuthUserDetailsSendingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self,request):
@@ -408,9 +402,9 @@ class UserAuthUserDetailsSendingView(APIView):
                 auth_user_object = AuthUser.objects.get(id = auth_user_id)
 
                 #Putting it to the serializer and sending the serializer data to the frontend
-                user_auth_user_details_sending_serializer = AuthUserSerializer(auth_user_object)
+                patient_auth_user_details_sending_serializer = AuthUserSerializer(auth_user_object)
 
-                return JsonResponse({'user_auth_user_details': user_auth_user_details_sending_serializer.data}, status=200)
+                return JsonResponse({'patient_auth_user_details': patient_auth_user_details_sending_serializer.data}, status=200)
             
             except AuthUser.DoesNotExist:
                 return JsonResponse({'Not Found':'No Auth user object found'}, status = 400)
@@ -418,8 +412,8 @@ class UserAuthUserDetailsSendingView(APIView):
             return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
         
 
-#Creating the view to update user auth user details
-class UserAuthUserDetailsUpdateView(APIView):
+#Creating the view to update patient auth user details
+class PatientAuthUserDetailsUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self,request):
@@ -430,23 +424,23 @@ class UserAuthUserDetailsUpdateView(APIView):
             #Getting the current password and new updating data to variables
             current_password = request.data.get('current_password')
 
-            user_auth_user_data = request.data.get('user_auth_user_details', {})
+            patient_auth_user_data = request.data.get('patient_auth_user_details', {})
 
             #Validating the current password
-            user_auth_user = authenticate(request, username= request.user.username, password = current_password)
+            patient_auth_user = authenticate(request, username= request.user.username, password = current_password)
 
-            if user_auth_user is not None:
+            if patient_auth_user is not None:
                 
                 #Updating the auth user details
-                user_auth_user_details_updating_serializer = AuthUserSerializer(user_auth_user, data = user_auth_user_data, partial=True)
+                patient_auth_user_details_updating_serializer = AuthUserSerializer(patient_auth_user, data = patient_auth_user_data, partial=True)
 
-                if user_auth_user_details_updating_serializer.is_valid():
+                if patient_auth_user_details_updating_serializer.is_valid():
 
-                    user_auth_user_details_updating_serializer.save()
+                    patient_auth_user_details_updating_serializer.save()
 
                     return JsonResponse({'Sucess': 'Data updated successfully'}, status=201)
                 else:
-                    return JsonResponse({'errors': user_auth_user_details_updating_serializer.errors}, status=400)
+                    return JsonResponse({'errors': patient_auth_user_details_updating_serializer.errors}, status=400)
                 
             else:
                 return JsonResponse({'error': 'Invalid credentials'},status=status.HTTP_401_UNAUTHORIZED)

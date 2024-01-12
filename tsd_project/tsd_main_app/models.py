@@ -39,7 +39,7 @@ class RolePage(models.Model):
 #Creating a custom user model to store authentication information
 class AuthUser(AbstractUser):
 
-    #Declaring the field to include the user type (user, counselor, admin)
+    #Declaring the field to include the user type (patient, admin)
     auth_user_type = models.CharField(max_length=50)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
     age = models.IntegerField(null = True)
@@ -60,7 +60,7 @@ class Patient(models.Model):
     mobile_number = models.CharField(max_length=50, null=True)
     date_of_birth = models.DateField(null=True)
     
-    #We can access the age property through an instance of a User object
+    #We can access the age property through an instance of a Patient object
     @property
     def age(self):
         if self.date_of_birth is not None:
@@ -98,7 +98,7 @@ class Answer(models.Model):
         return self.answer
 
 
-#Creating the quiz_rsult model to store quiz results
+#Creating the quiz_result model to store quiz results
 class QuizResult(models.Model):
     # Adding the foreign key field from the patient table (1:many relationship)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
@@ -131,6 +131,9 @@ class QuizQandA(models.Model):
 
     #Adding the other fields
     answer_id = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.id
 
 
 
