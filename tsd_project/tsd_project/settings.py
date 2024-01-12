@@ -31,7 +31,11 @@ SECRET_KEY = 'django-insecure-&+jo3was*bebzfo_s#4ad-f)csg8utbkhdtfjr$!czpm6ig&n%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11', 'MindCare.pythonanywhere.com']
+# ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11']
+# settings.py
+
+ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', '192.168.158.11', 'localhost', '192.168.1.23']
+
 
 
 # Application definition
@@ -50,13 +54,34 @@ INSTALLED_APPS = [
     'rest_framework',
     #cors headers
     'corsheaders',
+    #JWT
+    'rest_framework_simplejwt',
+
 ]
 
-#Jwt Authentication class
+# #Jwt Authentication class
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'tsd_main_app.jwt_authentication.JWTAuthentication',
+#     ),
+# }
+
+# Configure Django REST framework
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'tsd_main_app.jwt_authentication.JWTAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+}
+
+# Configure JWT
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=14),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
 }
 
 MIDDLEWARE = [
@@ -109,10 +134,10 @@ WSGI_APPLICATION = 'tsd_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'MindCare$tsd_project',
-        'USER': 'MindCare',
-        'PASSWORD': 'MySQL2024$',
-        'HOST': 'MindCare.mysql.pythonanywhere-services.com',
+        'NAME': 'tsdproject',
+        'USER': 'root',
+        'PASSWORD': '20021028',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }
@@ -142,7 +167,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Colombo'
 
 USE_I18N = True
 
@@ -158,5 +183,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-STATIC_ROOT = "/home/MindCare/TSD_Project_Back_End/tsd_project/static"
