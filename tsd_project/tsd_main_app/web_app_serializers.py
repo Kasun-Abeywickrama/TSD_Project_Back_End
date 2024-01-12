@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import AuthUser, Page, Role, Question, Answer
+from .models import Appointment, AuthUser, Page, Role, Question, Answer, QuizResult
+
 
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
@@ -70,5 +71,28 @@ class QuestionSendingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = ['id', 'question', 'answers']
+
+class QuizResultSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    age = serializers.CharField(source='user.age', read_only=True)
+    class Meta:
+        model = QuizResult
+        fields = ['id', 'user', 'questions', 'score', 'dp_level', 'no_of_days', 'conclusion', 'counselor_or_not', 'date', 'time','is_seen', 'user_name', 'age']
+
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = [
+            'id',
+            'quiz_result_id',
+            'admin_id',
+            'requested_date',
+            'is_checked',
+            'scheduled_date',
+            'scheduled_time_period',
+            'response_description',
+        ]
+
 
 
