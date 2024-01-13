@@ -423,11 +423,14 @@ class PatientAuthUserDetailsUpdateView(APIView):
 
             #Getting the current password and new updating data to variables
             current_password = request.data.get('current_password')
+            print(current_password)
 
             patient_auth_user_data = request.data.get('patient_auth_user_details', {})
+            print(patient_auth_user_data)
 
             #Validating the current password
             patient_auth_user = authenticate(request, username= request.user.username, password = current_password)
+            print(patient_auth_user)
 
             if patient_auth_user is not None:
                 
