@@ -1,8 +1,16 @@
 from django.urls import path
-from .web_app_views import LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_user_completed_appointments, get_user_pending_appointments, user_appointment_details
 
 
 urlpatterns = [
+    path('get_user_account_details/<int:pk>/', AccountRetrieveUpdateDeleteView.as_view(), name='get-user-account-details'),
+    path('get_all_accounts/',AccountsView.as_view(), name='get-all-accounts'),
+    path('update_user_account_details/<int:pk>/', AccountRetrieveUpdateDeleteView.as_view(), name='update-user-account-details'),
+    path('user_appointment_details/<int:pk>/',user_appointment_details, name='user-appointment-details'),
+    path('user_pending_appointments/', get_user_pending_appointments, name='user-pending-appointments'),
+    path('user_completed_appointments/', get_user_completed_appointments, name='user-completed-appointments'),
+    path('complete-appointment/<int:pk>/', SetAppointment.as_view(), name='complete-appointment'),
+    path('appointment-list/', AppointmentListView.as_view(), name='appointment-list'),
     path('set-appointment/<int:pk>/', SetAppointment.as_view(), name='set-appointment-detail'),
     path('quiz-result/<int:pk>/', ResultsRetrieveUpdateDeleteView.as_view(), name='result-retrieve-update-delete'),
     path('result-list/', ResultsListCreateView.as_view(), name='result-list'),

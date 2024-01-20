@@ -69,6 +69,9 @@ class Patient(models.Model):
             return age
         else:
             return "No Date of Birth"
+        
+    def __str__(self):
+        return self.first_name + " " + self.last_name 
             
 
 #Creating the Question model
@@ -117,7 +120,7 @@ class QuizResult(models.Model):
     is_seen = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.id
+        return self.user.first_name + " " + self.user.last_name
     
 
 
@@ -153,6 +156,9 @@ class Admin(models.Model):
     location = models.CharField(max_length=200, null=True)
     website = models.CharField(max_length=200, null=True)
 
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+
 
 # Creating the Appointment table 
 class Appointment(models.Model):
@@ -169,6 +175,10 @@ class Appointment(models.Model):
     scheduled_date = models.DateField(null=True)
     scheduled_time_period = models.CharField(max_length = 100, null = True)
     response_description = models.CharField(max_length=1000, null=True)
+
+    def __str__(self):
+        return str(self.quiz_result.user.first_name + " " + self.quiz_result.user.last_name)
+
 
 
 
