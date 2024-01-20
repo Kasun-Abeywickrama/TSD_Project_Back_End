@@ -4,9 +4,12 @@ from .models import Appointment, AuthUser, Page, Role, Question, Answer, QuizRes
 
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
+
+    role_name = serializers.CharField(source='role.name', read_only=True)
+
     class Meta:
         model = AuthUser
-        fields = ['id', 'username', 'password', 'auth_user_type','role']
+        fields = ['id', 'username','email', 'password', 'auth_user_type','role', 'role_name']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -23,6 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.username = validated_data.get('username', instance.username)
         instance.auth_user_type = validated_data.get('auth_user_type', instance.auth_user_type)
+        instance.role = validated_data.get('role', instance.role)
 
         instance.save()
         return instance
@@ -81,10 +85,16 @@ class QuizResultSerializer(serializers.ModelSerializer):
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='quiz_result.user.first_name', read_only=True)
+    last_name = serializers.CharField(source='quiz_result.user.last_name', read_only=True)
+    dp_level = serializers.CharField(source='quiz_result.dp_level', read_only=True)
+
     class Meta:
         model = Appointment
         fields = [
             'id',
+            'first_name',
+            'last_name',
             'quiz_result_id',
             'admin_id',
             'requested_date',
@@ -92,4 +102,33 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'scheduled_date',
             'scheduled_time_period',
             'response_description',
+            'dp_level'  
         ]
+
+
+class UserAppointments(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='quiz_result.user.first_name', read_only=True)
+    last_name = serializers.CharField(source='quiz_result.user.last_name', read_only=True)
+    age = serializers.CharField(source='quiz_result.user.age', read_only=True)
+    score = serializers.CharField(source='quiz_result.score', read_only=True)
+    dp_level = serializers.CharField(source='quiz_result.dp_level', read_only=True)
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id',
+            'first_name',
+            'last_name',
+            'age',
+            'quiz_result_id',
+            'admin_id',
+            'requested_date',
+            'is_checked',
+            'scheduled_date',
+            'scheduled_time_period',
+            'response_description',
+            'dp_level',
+            'score' 
+        ]
+
+

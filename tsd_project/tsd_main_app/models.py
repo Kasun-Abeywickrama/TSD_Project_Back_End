@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from datetime import date
 from django.db import models
 
+
 # Model for Page
 class Page(models.Model):
     title = models.CharField(max_length=200)
@@ -69,7 +70,9 @@ class User(models.Model):
             return age
         else:
             return "No Date of Birth"
-            
+
+    def __str__(self):
+        return self.first_name + " " + self.last_name 
 
 #Creating the Question model
 class Question(models.Model):
@@ -116,6 +119,8 @@ class QuizResult(models.Model):
     time = models.TimeField(auto_now_add=True)
     is_seen = models.BooleanField(default = False)
     
+    def __str__(self):
+        return self.user.first_name + " " + self.user.last_name
 
 
 # Creating the many to many table of question and quiz result
@@ -128,7 +133,6 @@ class QuizQandA(models.Model):
 
     #Adding the other fields
     answer_id = models.CharField(max_length=30)
-
 
 
 #Creating the Admin model
@@ -147,6 +151,9 @@ class Admin(models.Model):
     location = models.CharField(max_length=200, null=True)
     website = models.CharField(max_length=200, null=True)
 
+    def __str__(self):
+        return self.first_name + " " + self.last_name
+
 
 # Creating the Appointment table 
 class Appointment(models.Model):
@@ -164,7 +171,8 @@ class Appointment(models.Model):
     scheduled_time_period = models.CharField(max_length = 100, null = True)
     response_description = models.CharField(max_length=1000, null=True)
 
-
+    def __str__(self):
+        return str(self.quiz_result.user.first_name + " " + self.quiz_result.user.last_name)
 
 
 
