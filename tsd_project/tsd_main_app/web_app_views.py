@@ -4,11 +4,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
+from .web_app_serializers import AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
 from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
 
 # Check if a role has a specific permission on a page.
 def is_permission(role_name, page_title, permission_type):
@@ -580,3 +583,97 @@ class SetAppointment(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class AppointmentListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        try:
+            return Appointment.objects.get(pk=pk)
+        except Appointment.DoesNotExist:
+            print(f"Appointment with pk={pk} does not exist.")
+            raise Http404
+
+    def get(self, request, format=None):
+        appointments = Appointment.objects.all()
+        serializer = AppointmentSerializer(appointments, many=True)
+        # print(serializer.data)
+        return Response(serializer.data)
+    
+    def put(self, request, pk, format=None):
+        appointment = self.get_object(pk)
+        serializer = AppointmentSerializer(appointment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            print(serializer.errors)  # Add this line to print validation errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+
+class AccountsView(generics.UpdateAPIView):
+
+    queryset = AuthUser.objects.all()
+    serializer_class = UserSerializer
+    
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'read'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+        accounts = AuthUser.objects.all()
+        serializer = UserSerializer(accounts, many=True)
+        return Response(serializer.data)
+
+class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+
+    queryset = AuthUser.objects.all()
+    serializer_class = UserSerializer
+
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, pk,):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'read'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+        user_details = AuthUser.objects.get(id=pk)
+        serializer = UserSerializer(user_details)
+        return Response(serializer.data)
+
+    def put(self, request, pk, *args, **kwargs):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'update'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_pending_appointments(request):
+    if request.method == 'GET':
+        appointments = Appointment.objects.filter(admin__auth_user = request.user.id, is_checked = False)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_completed_appointments(request):
+    if request.method == 'GET':
+        appointments = Appointment.objects.filter(admin__auth_user = request.user.id, is_checked = True)
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_appointment_details(request, pk):
+    if request.method == 'GET':
+        appointment = Appointment.objects.get(id = pk)
+        serializer = UserAppointments(appointment)
+        return Response(serializer.data)
