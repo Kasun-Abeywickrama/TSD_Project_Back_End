@@ -71,7 +71,7 @@ class Patient(models.Model):
             return "No Date of Birth"
         
     def __str__(self):
-        return self.first_name + " " + self.last_name 
+        return str(self.id)
             
 
 #Creating the Question model
