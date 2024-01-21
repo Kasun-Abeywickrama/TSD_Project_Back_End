@@ -120,7 +120,7 @@ class QuizResult(models.Model):
     is_seen = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.first_name + " " + self.user.last_name
+        return self.patient.first_name + " " + self.patient.last_name
     
 
 
