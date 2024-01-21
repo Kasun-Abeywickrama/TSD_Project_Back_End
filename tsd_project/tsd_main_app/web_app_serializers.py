@@ -77,16 +77,16 @@ class QuestionSendingSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'answers']
 
 class QuizResultSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.username', read_only=True)
-    age = serializers.CharField(source='user.age', read_only=True)
+    user_name = serializers.CharField(source='patient.username', read_only=True)
+    age = serializers.CharField(source='patient.age', read_only=True)
     class Meta:
         model = QuizResult
         fields = ['id', 'user', 'questions', 'score', 'dp_level', 'no_of_days', 'conclusion', 'counselor_or_not', 'date', 'time','is_seen', 'user_name', 'age']
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(source='quiz_result.user.first_name', read_only=True)
-    last_name = serializers.CharField(source='quiz_result.user.last_name', read_only=True)
+    first_name = serializers.CharField(source='quiz_result.patient.first_name', read_only=True)
+    last_name = serializers.CharField(source='quiz_result.patient.last_name', read_only=True)
     dp_level = serializers.CharField(source='quiz_result.dp_level', read_only=True)
 
     class Meta:
@@ -107,9 +107,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class UserAppointments(serializers.ModelSerializer):
-    first_name = serializers.CharField(source='quiz_result.user.first_name', read_only=True)
-    last_name = serializers.CharField(source='quiz_result.user.last_name', read_only=True)
-    age = serializers.CharField(source='quiz_result.user.age', read_only=True)
+    first_name = serializers.CharField(source='quiz_result.patient.first_name', read_only=True)
+    last_name = serializers.CharField(source='quiz_result.patient.last_name', read_only=True)
+    age = serializers.CharField(source='quiz_result.patient.age', read_only=True)
     score = serializers.CharField(source='quiz_result.score', read_only=True)
     dp_level = serializers.CharField(source='quiz_result.dp_level', read_only=True)
 
