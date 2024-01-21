@@ -175,6 +175,7 @@ class Appointment(models.Model):
     scheduled_date = models.DateField(null=True)
     scheduled_time_period = models.CharField(max_length = 100, null = True)
     response_description = models.CharField(max_length=1000, null=True)
+    is_patient_viewed = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.quiz_result.patient.first_name + " " + self.quiz_result.patient.last_name)
