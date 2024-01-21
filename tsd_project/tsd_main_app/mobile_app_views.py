@@ -592,6 +592,164 @@ class checkOngoingAppointmentView(APIView):
             
         else:
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+#Appointment list sending view
+class AppointmentListSendingView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            try: 
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
+
+                patient_id = patient.id
+
+                #Create a list to store the data that must be send to the frontend
+                appointment_list = []
+
+                #Getting all the quiz results related to that patient id
+                quiz_results = QuizResult.objects.filter(patient = patient_id)
+
+                if quiz_results:
+
+                    #For each quiz result get all the appointments related to that
+                    for quiz_result in quiz_results:
+
+                        appointments = Appointment.objects.filter(quiz_result = quiz_result.id)
+
+                        if appointments:
+
+                            #For each of these appointments get the appointments that are scheduled
+                            for appointment in appointments:
+
+                                if(appointment.scheduled_date is not None and appointment.scheduled_time_period is not None and appointment.response_description is not None):
+
+                                    try:
+
+                                        #Get the admin object related to the appointment
+                                        admin = Admin.objects.get(id = appointment.admin.id)
+
+                                        if(appointment.is_patient_viewed == True):
+                                            is_patient_viewed = 1
+                                        else:
+                                            is_patient_viewed = 0
+
+                                        appointment_list.append({
+                                            'appointment_id': appointment.id,
+                                            'appointment_date': appointment.scheduled_date,
+                                            'appointment_time': appointment.scheduled_time_period,
+                                            'counselor_first_name': admin.first_name,
+                                            'counselor_last_name': admin.last_name,
+                                            'appointment_location': admin.location,
+                                            'response_description': appointment.response_description,
+                                            'is_patient_viewed': is_patient_viewed
+                                        })
+                                    
+                                    except Admin.DoesNotExist:
+                                        return JsonResponse({'error': 'admin is not available' }, status=400)
+                        
+                        else:
+                            continue
+
+                    appointment_list.sort(key=lambda x:x['appointment_id'])
+                    return JsonResponse({'appointment_list' : appointment_list}, status = 200)
+                
+                else:
+                    return JsonResponse({'appointment_list' : appointment_list}, status = 200)
+            
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'patient is not available' }, status=400)
+                    
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+
+
+#View that makes the is_patient_viewed attribute true
+class MakeIsPatientViewedTrueView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            appointment_id = request.data.get('appointment_id')
+
+            try:
+                appointment_object = Appointment.objects.get(id = appointment_id)
+
+                appointment_object.is_patient_viewed = True
+
+                appointment_object.save()
+
+                return JsonResponse({'status': 'success'}, status=201)
+
+            except Appointment.DoesNotExist:
+                return JsonResponse({'error': 'appointment is not available' }, status=400)
+
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+#View to send the notification amount
+class SendNotificationAmountView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            try: 
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
+
+                patient_id = patient.id
+
+                notificationAmount = 0
+
+                #Getting all the quiz results related to that patient id
+                quiz_results = QuizResult.objects.filter(patient = patient_id)
+
+                if quiz_results:
+
+                    #For each quiz result get all the appointments related to that
+                    for quiz_result in quiz_results:
+
+                        appointments = Appointment.objects.filter(quiz_result = quiz_result.id)
+
+                        if appointments:
+
+                            #For each of these appointments get the appointments that are scheduled
+                            for appointment in appointments:
+
+                                if(appointment.scheduled_date is not None and appointment.scheduled_time_period is not None and appointment.response_description is not None and appointment.is_patient_viewed == False):
+
+                                    notificationAmount += 1
+                        
+                        else:
+                            continue
+                        
+                    return JsonResponse({'notification_amount' : str(notificationAmount)}, status = 200)
+                
+                else:
+                    return JsonResponse({'notification_amount' : str(notificationAmount)}, status = 200)
+            
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'patient is not available' }, status=400)
+                    
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 
 
 
