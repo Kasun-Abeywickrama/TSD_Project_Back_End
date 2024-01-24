@@ -144,18 +144,6 @@ class AdminSerializer(serializers.ModelSerializer):
         model = Admin
         fields = ['auth_user']
 
-# class UpdateCurrentUserSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Admin
-#         fields = ['first_name', 'last_name', 'mobile_number', 'location', 'website', 'profile_image']
-
-
-# class UpdateCurrentUserWithoutImageSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Admin
-#         fields = ['first_name', 'last_name', 'mobile_number', 'location', 'website',]
         
 class UpdateCurrentUserSerializer(serializers.ModelSerializer):
     class Meta:
