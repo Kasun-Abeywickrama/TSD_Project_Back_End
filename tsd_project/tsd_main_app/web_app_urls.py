@@ -1,11 +1,14 @@
 from django.urls import path
-from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_user_completed_appointments, get_user_pending_appointments, user_appointment_details
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, QuestionListCreateView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, update_current_user, user_appointment_details
 
 
 urlpatterns = [
+    path('update_current_user/',update_current_user,name='update-user-account-details'),
+    path('get_current_user/', get_current_user, name='get-current-user'),
+    path('question-list/',QuestionListCreateView.as_view(), name='question-list-create'),
     path('get_user_account_details/<int:pk>/', AccountRetrieveUpdateDeleteView.as_view(), name='get-user-account-details'),
     path('get_all_accounts/',AccountsView.as_view(), name='get-all-accounts'),
-    path('update_user_account_details/<int:pk>/', AccountRetrieveUpdateDeleteView.as_view(), name='update-user-account-details'),
+    path('retrieve_update_delete_user_account/<int:pk>/', AccountRetrieveUpdateDeleteView.as_view(), name='update-user-account-details'),
     path('user_appointment_details/<int:pk>/',user_appointment_details, name='user-appointment-details'),
     path('user_pending_appointments/', get_user_pending_appointments, name='user-pending-appointments'),
     path('user_completed_appointments/', get_user_completed_appointments, name='user-completed-appointments'),

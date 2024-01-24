@@ -156,6 +156,8 @@ class Admin(models.Model):
     location = models.CharField(max_length=200, null=True)
     website = models.CharField(max_length=200, null=True)
 
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
+
     def __str__(self):
         return str(self.id)
 
