@@ -1,15 +1,21 @@
 from rest_framework import serializers
-from .models import Appointment, AuthUser, Page, Role, Question, Answer, QuizResult
+from .models import Admin, Appointment, AuthUser, Page, Role, Question, Answer, QuizResult
 
 
 #Creating the model serializer for auth user model
 class UserSerializer(serializers.ModelSerializer):
 
     role_name = serializers.CharField(source='role.name', read_only=True)
+    first_name = serializers.CharField(source='admin.first_name', read_only=True)
+    last_name = serializers.CharField(source='admin.last_name', read_only=True)
+    mobile_number = serializers.CharField(source='admin.mobile_number', read_only=True)
+    location = serializers.CharField(source='admin.location', read_only=True)
+    website = serializers.CharField(source='admin.website', read_only=True)
+    profile_image = serializers.ImageField(source='admin.profile_image', read_only=True)
 
     class Meta:
         model = AuthUser
-        fields = ['id', 'username','email', 'password', 'auth_user_type','role', 'role_name']
+        fields = ['id', 'username','email', 'password', 'auth_user_type','role', 'role_name', 'first_name', 'last_name', 'mobile_number', 'location', 'website', 'profile_image']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -51,7 +57,7 @@ class RoleSerializer(serializers.ModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = ['id', 'question', 'selected_order']
+        fields = ['id', 'question', 'selected_order', 'is_updating']
 
 
 # Creating the answer serializer
@@ -77,11 +83,12 @@ class QuestionSendingSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'answers']
 
 class QuizResultSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='patient.username', read_only=True)
+    user_first_name = serializers.CharField(source='patient.first_name', read_only=True)
+    user_last_name = serializers.CharField(source='patient.last_name', read_only=True)
     age = serializers.CharField(source='patient.age', read_only=True)
     class Meta:
         model = QuizResult
-        fields = ['id', 'user', 'questions', 'score', 'dp_level', 'no_of_days', 'conclusion', 'counselor_or_not', 'date', 'time','is_seen', 'user_name', 'age']
+        fields = ['id', 'patient', 'questions', 'score', 'dp_level', 'no_of_days', 'conclusion', 'counselor_or_not', 'date', 'time','is_seen', 'user_first_name', 'user_last_name', 'age']
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
@@ -132,4 +139,33 @@ class UserAppointments(serializers.ModelSerializer):
         ]
 
 
+class AdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Admin
+        fields = ['auth_user']
 
+# class UpdateCurrentUserSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Admin
+#         fields = ['first_name', 'last_name', 'mobile_number', 'location', 'website', 'profile_image']
+
+
+# class UpdateCurrentUserWithoutImageSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Admin
+#         fields = ['first_name', 'last_name', 'mobile_number', 'location', 'website',]
+        
+class UpdateCurrentUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Admin
+        fields = ['first_name', 'last_name', 'mobile_number', 'location', 'website', 'profile_image']
+
+    def __init__(self, *args, **kwargs):
+        # Dynamically exclude 'profile_image' field if specified
+        exclude_profile_image = kwargs.pop('exclude_profile_image', False)
+        super(UpdateCurrentUserSerializer, self).__init__(*args, **kwargs)
+
+        if exclude_profile_image:
+            self.fields.pop('profile_image')

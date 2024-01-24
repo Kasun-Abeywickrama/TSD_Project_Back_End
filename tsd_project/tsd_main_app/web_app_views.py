@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
+from .models import Admin, Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
+from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -87,11 +87,17 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        response_data = {
-            'message': 'Registration successful. You can now log in.',
-        }
+        data = {'auth_user':user.id}
+        if user: 
+            serializer1 = AdminSerializer(data = data)
+            if serializer1.is_valid():
+                serializer1.save()
 
-        return Response(response_data)
+                response_data = {
+                    'message': 'Registration successful. You can now log in.',
+                }
+
+                return Response(response_data)
 
 
 
@@ -186,7 +192,12 @@ class PageRetrieveUpdateDeleteView(APIView):
         return Response(status=status.HTTP_404_NOT_FOUND)
     
 
+class QuestionListCreateView(APIView):
 
+    def get(self, request, format=None):
+        questions = Question.objects.all()
+        serializer = QuestionSerializer(questions, many=True)
+        return Response(serializer.data)
 
 
 # ------------------- Question Creating view ------------------------- #
@@ -647,12 +658,46 @@ class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         return Response(serializer.data)
 
     def put(self, request, pk, *args, **kwargs):
-
         # Check if the user has permission to access the page
         if not is_permission(request.user.role, 'Accounts', 'update'):
-            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
+        try:
+            user_details = AuthUser.objects.get(id=pk)
+        except AuthUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        # Extract 'role' from request.data
+        role_id = request.data.get('role')
+
+        try:
+            # Try to get the Role instance by ID
+            role_instance = Role.objects.get(id=role_id)
+        except Role.DoesNotExist:
+            return Response({"error": "Role not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update 'role' field with the Role instance
+        user_details.role = role_instance
+        user_details.save()
+
+        serializer = UserSerializer(user_details)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk, *args, **kwargs):
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'delete'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            user_details = AuthUser.objects.get(id=pk)
+        except AuthUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user_details.delete()
+
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)
+    
+    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_pending_appointments(request):
@@ -677,3 +722,35 @@ def user_appointment_details(request, pk):
         appointment = Appointment.objects.get(id = pk)
         serializer = UserAppointments(appointment)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    if request.method == 'GET':
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_current_user(request):
+    if request.method == 'PUT':
+        user = request.user
+        admin = Admin.objects.get(auth_user=user)
+        print(request.data)
+        
+        # Check if 'profile_image' is present and not equal to 'null'
+        if 'profile_image' in request.data and request.data['profile_image'] != 'null':
+            # Delete the existing profile image
+            if admin.profile_image:
+                admin.profile_image.delete()
+
+        # Use a single serializer, excluding 'profile_image' if needed
+        serializer = UpdateCurrentUserSerializer(admin, data=request.data, partial=True, exclude_profile_image=request.data['profile_image'] == 'null')
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

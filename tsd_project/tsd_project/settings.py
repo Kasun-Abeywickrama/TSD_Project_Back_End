@@ -134,18 +134,18 @@ WSGI_APPLICATION = 'tsd_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'MindCare$tsd_project',
-        'USER': 'MindCare',
-        'PASSWORD': 'MySQL2024$',
-        'HOST': 'MindCare.mysql.pythonanywhere-services.com',
-        'PORT': '3306',
         # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'tsdproject',
-        # 'USER': 'root',
-        # 'PASSWORD': 'root',
-        # 'HOST': 'localhost',
+        # 'NAME': 'MindCare$tsd_project',
+        # 'USER': 'MindCare',
+        # 'PASSWORD': 'MySQL2024$',
+        # 'HOST': 'MindCare.mysql.pythonanywhere-services.com',
         # 'PORT': '3306',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tsdproject',
+        'USER': 'root',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -192,3 +192,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, '')
