@@ -486,7 +486,9 @@ class SendCounselorDetailsView(APIView):
                             #Get the admin details related to the counselor
                             admin_object = Admin.objects.get(auth_user = counselor.id)
 
-                            if(admin_object.first_name is not None and admin_object.last_name is not None and admin_object.location is not None and admin_object.mobile_number is not None and admin_object.website is not None):
+                            if(admin_object.first_name is not None and admin_object.last_name is not None and admin_object.location is not None and admin_object.mobile_number is not None and admin_object.website is not None and admin_object.profile_image is not None):
+
+                                print(admin_object.profile_image)
 
                                 counselor_details.append({
                                     'auth_user_id': counselor.id,
@@ -497,6 +499,7 @@ class SendCounselorDetailsView(APIView):
                                     'location': admin_object.location,
                                     'mobile_number':admin_object.mobile_number,
                                     'website':admin_object.website,
+                                    'profile_image': str(admin_object.profile_image),
                                 })
                         except Admin.DoesNotExist:
                             return JsonResponse({'Not Found':'Admin object not found'}, status=400)
@@ -649,7 +652,8 @@ class AppointmentListSendingView(APIView):
                                             'counselor_last_name': admin.last_name,
                                             'appointment_location': admin.location,
                                             'response_description': appointment.response_description,
-                                            'is_patient_viewed': is_patient_viewed
+                                            'is_patient_viewed': is_patient_viewed,
+                                            'profile_image': str(admin.profile_image),
                                         })
                                     
                                     except Admin.DoesNotExist:
