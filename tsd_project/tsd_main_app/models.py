@@ -149,6 +149,9 @@ class Admin(models.Model):
     #Declaring the many to many relationship with the quiz result table
     quiz_result = models.ManyToManyField(QuizResult, through='Appointment')
 
+    #Declaring the many to many relationship with the patient table
+    patient = models.ManyToManyField(Patient, through='PrivateQuestions')
+
     #Declaring relavant fields
     first_name = models.CharField(max_length=50, null=True)
     last_name = models.CharField(max_length=50, null=True)
@@ -181,6 +184,22 @@ class Appointment(models.Model):
 
     def __str__(self):
         return str(self.quiz_result.patient.first_name + " " + self.quiz_result.patient.last_name)
+    
+
+# creating private questions model
+class PrivateQuestions(models.Model):
+
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+
+    admin = models.ForeignKey(Admin, on_delete=models.CASCADE)
+
+    private_question = models.CharField(max_length=500)
+    private_answer = models.CharField(max_length=500)
+    asked_date = models.DateField(auto_now_add=True)
+    asked_time = models.TimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.private_question
 
 
 
