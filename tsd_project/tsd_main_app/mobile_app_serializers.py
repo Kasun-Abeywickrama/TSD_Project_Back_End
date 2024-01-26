@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Appointment, AuthUser, QuizQandA, QuizResult, Patient, Question, Answer
+from .models import Appointment, AuthUser, PrivateQuestions, QuizQandA, QuizResult, Patient, Question, Answer
 
 #Creating the model serializer for auth user model
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -95,6 +95,12 @@ class PreviousQuizResultSendingSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
+        fields = '__all__'
+
+# creating private questions serializer
+class PrivateQuestionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrivateQuestions
         fields = '__all__'
 
 

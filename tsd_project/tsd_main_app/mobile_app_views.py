@@ -6,8 +6,8 @@ from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from tsd_main_app.models import Admin, Appointment, AuthUser, Question, QuizResult, Role, Patient
-from tsd_main_app.mobile_app_serializers import AppointmentSerializer, PatientLoginSerializer, AuthUserSerializer, PatientSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
+from tsd_main_app.models import Admin, Appointment, AuthUser, PrivateQuestions, Question, QuizResult, Role, Patient
+from tsd_main_app.mobile_app_serializers import AppointmentSerializer, PatientLoginSerializer, AuthUserSerializer, PatientSerializer, PrivateQuestionsSerializer,QuestionSendingSerializer , QuizResultSerializer, QuizQandASerializer, QuizResultSendingSerializer, PreviousQuizResultSendingSerializer
 
 
 # Creating the view to register the patient
@@ -752,6 +752,93 @@ class SendNotificationAmountView(APIView):
             except Patient.DoesNotExist:
                 return JsonResponse({'error': 'patient is not available' }, status=400)
                     
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+# Storing the private question view
+class StorePrivateQuestionView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            try:
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
+
+                patient_id = patient.id
+
+                private_question_data = request.data
+
+                private_question_data['private_answer'] = "Not yet answered"
+                private_question_data['patient'] = patient_id
+
+                private_question_serializer = PrivateQuestionsSerializer(data = private_question_data)
+
+                if private_question_serializer.is_valid():
+
+                    private_question_serializer.save()
+
+                    return JsonResponse({'success':'private question submitted successfully'}, status=201)
+                
+                else:
+                    return JsonResponse({'errors':private_question_serializer.errors}, status=400)
+            
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'patient is not available' }, status=400)
+
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+# Send the private questions view
+class SendPrivateQuestionsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            try:
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
+
+                patient_id = patient.id
+
+                private_questions_list = []
+
+                private_question_objects = PrivateQuestions.objects.filter(patient = patient_id)
+
+                if private_question_objects:
+
+                    for private_question_object in private_question_objects:
+
+                        private_questions_list.append({
+                            'private_question_id': private_question_object.id,
+                            'private_question': private_question_object.private_question,
+                            'private_answer': private_question_object.private_answer,
+                            'asked_date': private_question_object.asked_date,
+                            'asked_time': private_question_object.asked_time,
+                            'counselor_first_name': private_question_object.admin.first_name,
+                            'counselor_last_name': private_question_object.admin.last_name,
+                        })
+                    
+                    return JsonResponse({'private_questions_and_answers': private_questions_list}, status = 200)
+                
+                else:
+                    return JsonResponse({'private_questions_and_answers': private_questions_list}, status = 200)
+            
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'patient is not available' }, status=400)
+        
         else:
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 

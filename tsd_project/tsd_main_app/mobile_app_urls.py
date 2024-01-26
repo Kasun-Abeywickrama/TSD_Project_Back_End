@@ -1,5 +1,5 @@
 from django.urls import path
-from .mobile_app_views import AppointmentListSendingView, MakeIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendNotificationAmountView, checkOngoingAppointmentView
+from .mobile_app_views import AppointmentListSendingView, MakeIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendNotificationAmountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
 
 
 urlpatterns = [
@@ -50,4 +50,10 @@ urlpatterns = [
 
     #path to send the notification amount
     path('send_notification_amount/', SendNotificationAmountView.as_view(), name='send-notification-amount'),
+
+    #path to store private question
+    path('store_private_question/', StorePrivateQuestionView.as_view(), name='store-private-question'),
+
+    #path to send private questions
+    path('send_private_questions/', SendPrivateQuestionsView.as_view(), name='send-private-questions'),
 ]
