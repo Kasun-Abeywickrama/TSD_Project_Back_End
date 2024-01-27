@@ -1,5 +1,5 @@
 from django.urls import path
-from .mobile_app_views import SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, checkOngoingAppointmentView
+from .mobile_app_views import AppointmentListSendingView, MakeIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendNotificationAmountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
 
 
 urlpatterns = [
@@ -41,4 +41,19 @@ urlpatterns = [
 
     #path to check ongoing appointment 
     path('check_ongoing_appointment/', checkOngoingAppointmentView.as_view(), name = 'check-ongoing-appoointment'),
+
+    #path to send the appointment list
+    path('send_appointment_list/', AppointmentListSendingView.as_view(), name='send-appointment-list'),
+
+    #path to make is_patient_viewed true
+    path('make_is_patient_viewed_true/', MakeIsPatientViewedTrueView.as_view(), name='make-is-patient-viewed-true'),
+
+    #path to send the notification amount
+    path('send_notification_amount/', SendNotificationAmountView.as_view(), name='send-notification-amount'),
+
+    #path to store private question
+    path('store_private_question/', StorePrivateQuestionView.as_view(), name='store-private-question'),
+
+    #path to send private questions
+    path('send_private_questions/', SendPrivateQuestionsView.as_view(), name='send-private-questions'),
 ]
