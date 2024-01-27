@@ -529,7 +529,7 @@ class ResultsListCreateView(APIView):
 
     def get(self, request, format=None):
         # results = QuizResult.objects.all()
-        results = QuizResult.objects.all().order_by('-timestamp')
+        results = QuizResult.objects.all().order_by('-date', '-time')
         serializer = QuizResultSerializer(results, many=True)
         return Response(serializer.data)
     
