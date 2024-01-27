@@ -577,7 +577,7 @@ class SetAppointment(APIView):
 
 
     def put(self, request, pk, format=None):
-        appointment = self.get_object(pk)
+        appointment = Appointment.objects.get(quiz_result = pk)
         serializer = AppointmentSerializer(appointment, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -585,7 +585,7 @@ class SetAppointment(APIView):
         else:
             print(serializer.errors)  # Add this line to print validation errors
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        
 
     def patch(self, request, pk, format=None):
         appointment = self.get_object(pk)
