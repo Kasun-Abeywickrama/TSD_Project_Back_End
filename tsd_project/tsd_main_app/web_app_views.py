@@ -577,6 +577,7 @@ class SetAppointment(APIView):
 
 
     def put(self, request, pk, format=None):
+        print(request.data)
         appointment = self.get_object(pk)
         serializer = AppointmentSerializer(appointment, data=request.data)
         if serializer.is_valid():
@@ -693,6 +694,9 @@ class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         except AuthUser.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        admin = Admin.objects.get(auth_user = pk)
+        if admin.profile_image:
+                admin.profile_image.delete()
         user_details.delete()
 
         return Response({"message": "User deleted successfully"}, status=status.HTTP_200_OK)
