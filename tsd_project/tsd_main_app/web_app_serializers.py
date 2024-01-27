@@ -109,9 +109,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'scheduled_date',
             'scheduled_time_period',
             'response_description',
-            'dp_level',
-            'message'
-
+            'dp_level'  
         ]
 
 
