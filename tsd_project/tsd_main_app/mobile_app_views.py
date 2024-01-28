@@ -579,15 +579,7 @@ class checkOngoingAppointmentView(APIView):
             #Check if there is at least one object
             if appointments:
 
-                #Check whether there is a appointment which has accepted = False
-                for appointment in appointments:
-
-                    if(appointment.is_checked == False):
-
-                        return JsonResponse({'can_make_appointment' : 'false'}, status=201)
-                
-                #If there is no appointments which has accepted = False, send true
-                return JsonResponse({'can_make_appointment' : 'true'}, status=201)
+                return JsonResponse({'can_make_appointment' : 'false'}, status=201)
             
             #If there is no appointments, send true
             else:
