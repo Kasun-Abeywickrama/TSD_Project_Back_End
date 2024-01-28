@@ -1,8 +1,7 @@
-from django.db.models.functions import TruncSecond
+# from django.db.models.functions import TruncSecond
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import date
-from django.db import models
 
 # Model for Page
 class Page(models.Model):
@@ -200,11 +199,6 @@ class PrivateQuestions(models.Model):
 
     def __str__(self):
         return self.private_question
-
-
-
-
-
 
 
 

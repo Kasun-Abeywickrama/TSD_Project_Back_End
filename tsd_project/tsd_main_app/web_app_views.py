@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Admin, Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer
+from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -43,18 +43,16 @@ def is_permission(role_name, page_title, permission_type):
 # -----------------  Logout ApiVidew   ----------------- #
 
 class LogoutView(APIView):
-     permission_classes = (IsAuthenticated,)
-     def post(self, request):
-          
-          try:
-               refresh_token = request.data["refresh_token"]
-               token = RefreshToken(refresh_token)
-               token.blacklist()
-               return Response(status=status.HTTP_205_RESET_CONTENT)
-          except Exception as e:
-               return Response(status=status.HTTP_400_BAD_REQUEST)
+    serializer_class = LogoutSerializer
+    permission_classes = (IsAuthenticated,)  # Add parentheses here
 
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
+        return Response({"message": "Logout Successful"}, status=status.HTTP_204_NO_CONTENT)
+     
 
 # -----------------  Register ApiView   ----------------- #
 class RegisterView(generics.CreateAPIView):
@@ -682,6 +680,7 @@ class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         user_details.save()
 
         serializer = UserSerializer(user_details)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
@@ -745,7 +744,7 @@ def update_current_user(request):
         print(request.data)
         
         # Check if 'profile_image' is present and not equal to 'null'
-        if 'profile_image' in request.data and request.data['profile_image'] != 'null':
+        if 'profile_image' in request.data or request.data['profile_image'] != 'null':
             # Delete the existing profile image
             if admin.profile_image:
                 admin.profile_image.delete()

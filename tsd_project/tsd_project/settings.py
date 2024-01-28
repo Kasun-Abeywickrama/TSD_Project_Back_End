@@ -56,7 +56,8 @@ INSTALLED_APPS = [
     #cors headers
     'corsheaders',
     #JWT
-    'rest_framework_simplejwt',
+    # 'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 
 ]
 
@@ -140,12 +141,12 @@ DATABASES = {
          'PASSWORD': 'MySQL2024$',
          'HOST': 'MindCare.mysql.pythonanywhere-services.com',
          'PORT': '3306',
-        #'ENGINE': 'django.db.backends.mysql',
-        #'NAME': 'tsdproject',
-        #'USER': 'root',
-        #'PASSWORD': 'root',
-        #'HOST': 'localhost',
-        #'PORT': '3306',
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'tsdproject',
+        # 'USER': 'root',
+        # 'PASSWORD': 'root',
+        # 'HOST': 'localhost',
+        # 'PORT': '3306',
     }
 }
 
