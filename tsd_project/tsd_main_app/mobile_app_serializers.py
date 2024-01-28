@@ -5,7 +5,7 @@ from .models import Appointment, AuthUser, PrivateQuestions, QuizQandA, QuizResu
 class AuthUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuthUser
-        fields = ['id', 'username', 'password','auth_user_type']
+        fields = ['id', 'username', 'password','auth_user_type', 'role']
 
     #Creating the hashed password to store in the database
     def create(self, validated_data):
@@ -22,6 +22,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
 
         instance.username = validated_data.get('username', instance.username)
         instance.auth_user_type = validated_data.get('auth_user_type', instance.auth_user_type)
+        instance.role = validated_data.get('role', instance.role)
         
         instance.save()
         return instance

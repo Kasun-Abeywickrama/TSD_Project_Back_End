@@ -20,37 +20,46 @@ class PatientRegisterView(APIView):
 
         #Putting auth_user_type = patient in the auth_user_data set
         auth_user_data['auth_user_type'] = 'patient'
-        
-        # Putting the data set inside the auth user serializer
-        auth_user_serializer = AuthUserSerializer(data = auth_user_data)
 
-        #Checking if the auth_user_serializer is valid
-        if(auth_user_serializer.is_valid()):
-            #Create the record
-            auth_user_instance = auth_user_serializer.save()
-        else:
-            #Return the relavant errors
-            print(auth_user_serializer.errors)
-            return JsonResponse({'status': 'Data is not valid','errors': auth_user_serializer.errors}, status=400)
-        
-        #Putting the auth_user_id in the patient data set
-        patient_data['auth_user'] = auth_user_instance.id
+        try:
+            #Getting the role id of the patient from the role model and adding it to the data list
+            patient_role = Role.objects.get(name = "Patient")
+            patient_role_id = patient_role.id
+            auth_user_data['role'] = patient_role_id
 
-        # Putting the patient data into the patient serializer
-        patient_serializer = PatientSerializer(data = patient_data)
+            # Putting the data set inside the auth user serializer
+            auth_user_serializer = AuthUserSerializer(data = auth_user_data)
 
-        #Checking the data validation
-        if(patient_serializer.is_valid()):
+            #Checking if the auth_user_serializer is valid
+            if(auth_user_serializer.is_valid()):
+                #Create the record
+                auth_user_instance = auth_user_serializer.save()
+            else:
+                #Return the relavant errors
+                print(auth_user_serializer.errors)
+                return JsonResponse({'status': 'Data is not valid','errors': auth_user_serializer.errors}, status=400)
+            
+            #Putting the auth_user_id in the patient data set
+            patient_data['auth_user'] = auth_user_instance.id
 
-            # Creating the new records in the tables
-            patient_serializer.save()
+            # Putting the patient data into the patient serializer
+            patient_serializer = PatientSerializer(data = patient_data)
 
-            # Returning a success response to the fluttter terminal
-            return JsonResponse({'status': 'success'}, status=201)
-        else:
-            # If the data is not valid, sending the relavant error to the frontend and delete the created auth user record
-            auth_user_instance.delete()
-            return JsonResponse({'status': 'Data is not valid','errors': patient_serializer.errors}, status=400)
+            #Checking the data validation
+            if(patient_serializer.is_valid()):
+
+                # Creating the new records in the tables
+                patient_serializer.save()
+
+                # Returning a success response to the fluttter terminal
+                return JsonResponse({'status': 'success'}, status=201)
+            else:
+                # If the data is not valid, sending the relavant error to the frontend and delete the created auth user record
+                auth_user_instance.delete()
+                return JsonResponse({'status': 'Data is not valid','errors': patient_serializer.errors}, status=400)
+            
+        except Role.DoesNotExist:
+            return JsonResponse({'Not Found':'No role object found'}, status = 400)
     
 
 
