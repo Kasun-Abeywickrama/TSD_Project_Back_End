@@ -36,3 +36,6 @@ admin.site.register(Appointment)
 
 #registering private questions model
 admin.site.register(PrivateQuestions)
+
+
+
