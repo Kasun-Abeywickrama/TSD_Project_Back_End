@@ -2,7 +2,7 @@
 from django.utils import timezone
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken, TokenError
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -125,20 +125,38 @@ def generate_jwt_token(authuser):
     return tokens
 
 
-#Patient refresh token blacklisting view
-class BlacklistRefreshTokenView(APIView):
-    
-    def post(self,requset):
+#Regenerate accessToken view
+class RegenerateAccessToken(APIView):
 
-        refresh_token = requset.data.get('refresh_token')
+    def post(self,request):
+
+        refresh_token = request.data.get('refresh_token')
+
+        try:
+            access_token = RefreshToken(refresh_token).access_token
+
+            return JsonResponse({'success': 'access token generated', 'access_token': str(access_token)}, status=201)
+        
+        except TokenError:
+            return JsonResponse({'error': 'Invalid tokens or expired'}, status=400)
+    
+
+
+#Patient tokens blacklisting view
+class BlacklistTokensView(APIView):
+    
+    def post(self,request):
+
+        refresh_token = request.data.get('refresh_token')
+        access_token = request.data.get('access_token')
 
         try:
             RefreshToken(refresh_token).blacklist()
 
-            return JsonResponse({'success': 'Refresh token blacklisted'}, status=201)
+            return JsonResponse({'success': 'Tokens blacklisted'}, status=201)
         
         except TokenError:
-            return JsonResponse({'error': 'Invalid refresh token or expired'}, status=400)
+            return JsonResponse({'error': 'Invalid tokens or expired'}, status=400)
         
 
 

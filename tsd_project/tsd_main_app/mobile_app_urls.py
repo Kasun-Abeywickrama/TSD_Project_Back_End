@@ -1,5 +1,5 @@
 from django.urls import path
-from .mobile_app_views import AppointmentListSendingView, BlacklistRefreshTokenView, DeleteAccountView, MakeIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendNotificationAmountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
+from .mobile_app_views import AppointmentListSendingView, BlacklistTokensView, RegenerateAccessToken, DeleteAccountView, MakeIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendNotificationAmountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
 
 
 urlpatterns = [
@@ -58,7 +58,10 @@ urlpatterns = [
     path('send_private_questions/', SendPrivateQuestionsView.as_view(), name='send-private-questions'),
 
     #path to blaclist refresh token
-    path('blacklist_refresh_token/', BlacklistRefreshTokenView.as_view(), name='blacklist-refresh-token'),
+    path('blacklist_tokens/', BlacklistTokensView.as_view(), name='blacklist-tokens'),
+
+    #path to regenerate access token
+    path('regenerate_access_token/', RegenerateAccessToken.as_view(), name='regenerate-access-token'),
 
     #path to delete patient account
     path('delete_account/', DeleteAccountView.as_view(), name='delete-account'),
