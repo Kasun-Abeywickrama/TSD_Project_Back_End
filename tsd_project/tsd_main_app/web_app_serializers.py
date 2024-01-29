@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Admin, Appointment, AuthUser, Page, Role, Question, Answer, QuizResult
+from .models import Admin, Appointment, AuthUser, Page, Role, Question, Answer, QuizResult, RolePage
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 
@@ -48,6 +48,7 @@ class PageSerializer(serializers.ModelSerializer):
 
 # Serializer for the Permission model, exposing all fields
 class RoleSerializer(serializers.ModelSerializer):
+    # mobile_number = serializers.CharField(source='admin.mobile_number', read_only=True)
     pages = PageSerializer(many=True, read_only=True)
     class Meta:
         model = Role
@@ -175,3 +176,10 @@ class LogoutSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail('bad_token')
+
+
+
+class RolePageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RolePage
+        fields = '__all__'
