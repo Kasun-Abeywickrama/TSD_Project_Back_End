@@ -1,7 +1,8 @@
 
+from django.utils import timezone
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.views import APIView
@@ -85,12 +86,17 @@ class PatientLoginView(APIView):
             # If there is a user,
             if authuser is not None:
                 if authuser.auth_user_type == 'patient':
-                    # create a JWT access token using simple jwt
-                    access_token = generate_jwt_token(authuser)
+                    # create a JWT access token and a refresh token using simple jwt
+                    tokens = generate_jwt_token(authuser)
+                    access_token = tokens['access_token']
+                    refresh_token = tokens['refresh_token']
 
-                    # create and send a login response including the access token
+                    print(access_token)
+                    print(refresh_token)
+
+                    # create and send a login response including the access token and the refresh token
                     login(request, authuser)
-                    return JsonResponse({'status': 'success', 'access_token': access_token}, status=200)
+                    return JsonResponse({'status': 'success', 'access_token': access_token, 'refresh_token': refresh_token}, status=200)
                 else:
                     return JsonResponse({'error': 'Invalid Credentials'},status=status.HTTP_401_UNAUTHORIZED)
         
@@ -112,11 +118,54 @@ def generate_jwt_token(authuser):
     refresh_token = RefreshToken.for_user(authuser)
 
     #Generate an access token for that refresh token
-    access_token = str(refresh_token.access_token)
+    access_token = refresh_token.access_token
 
-    # Returning the access token
-    return access_token
+    # Returning the access token and the refresh token
+    tokens = {'access_token': str(access_token), 'refresh_token': str(refresh_token)}
+    return tokens
 
+
+#Patient refresh token blacklisting view
+class BlacklistRefreshTokenView(APIView):
+    
+    def post(self,requset):
+
+        refresh_token = requset.data.get('refresh_token')
+
+        try:
+            RefreshToken(refresh_token).blacklist()
+
+            return JsonResponse({'success': 'Refresh token blacklisted'}, status=201)
+        
+        except TokenError:
+            return JsonResponse({'error': 'Invalid refresh token or expired'}, status=400)
+        
+
+
+#Account deleting view
+class DeleteAccountView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        # Check if the auth user type is patient
+        if request.user.auth_user_type == 'patient':
+
+            try:
+                auth_user_object = AuthUser.objects.get(id = request.user.id)
+
+                auth_user_object.delete()
+
+                return JsonResponse({'success': 'Account deleted successfully'}, status=201)
+
+            except AuthUser.DoesNotExist:
+                return JsonResponse({'Not Found':'No auth user object found'}, status = 400)
+
+        else:
+            return JsonResponse({'error': 'You does not have permission to access this content'}, status=400)
+    
+    
 
 
 # creating the view for sending the questions and answers
