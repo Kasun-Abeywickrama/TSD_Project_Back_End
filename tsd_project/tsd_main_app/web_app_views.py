@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 from .models import Admin, Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
+from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RolePageSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -18,12 +18,12 @@ def is_permission(role_name, page_title, permission_type):
     try:
         role = Role.objects.get(name=role_name)
     except:
-        print('role not found in is_permission function')
+        print( role_name,'not found in is_permission function')
 
     try:
         page = Page.objects.get(title=page_title)
     except:
-        print('page not found in is_permission function')
+        print( page_title,'page not found in is_permission function')
 
     try:
         role_page = RolePage.objects.get(role_id=role.id, page_id=page.id)
@@ -69,18 +69,18 @@ class RegisterView(generics.CreateAPIView):
         userName = request.data.get('username')
         password = request.data.get('password')
 
-        # if not userName or not password:
-        #     return Response({"error: Both Username and Password are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not userName or not password:
+            return Response({"error: Both Username and Password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if AuthUser.objects.filter(username=userName).exists():
-        #     return Response({"error: Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        if AuthUser.objects.filter(username=userName).exists():
+            return Response({"error: Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # if len(password) < 8:
-        #     return Response({"error: Password must be at least 8 characters"}, status=status.HTTP_400_BAD_REQUEST)
+        if len(password) < 8:
+            return Response({"error: Password must be at least 8 characters"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # # Check if the user has permission to access the page
-        # if not is_permission(request.user.role, 'Accounts', 'create'):
-        #     return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Accounts', 'create'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -144,16 +144,14 @@ class PageListCreateView(APIView):
 
     def get(self, request, format=None):
 
+        # Check if the user has permission to access the page
+        # if not is_permission(request.user.role, 'Pages', 'read'):
+        #     return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         selected_pages = Page.objects.filter(rolepage__role_id=request.user.role.id, rolepage__read=True)
         serializer = PageSerializer(selected_pages, many=True)
         return Response(serializer.data)
     
-    # def post(self,request,format=None):
-    #     serializer = PageSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PageRetrieveUpdateDeleteView(APIView):
     
@@ -204,6 +202,10 @@ class QuestionCreatingView(APIView):
 
     def post(self, request):
 
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'create'):
+            return Response({"error":"You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         question = request.data.get('question')
         answers = request.data.get('answers')
 
@@ -231,11 +233,11 @@ class QuestionCreatingView(APIView):
                 return Response({'success': 'Question created successfully'}, status=201)
             else:
                 question_instance.delete()
-                return Response(answer_serializer.errors,status=400)
+                return Response({'error':'Answers are not valid'}, answer_serializer.errors,status=400)
                     
         else:
             print(question_serializer.errors)
-            return Response(question_serializer.errors, status = 400)
+            return Response( {'error':'Question is not valid'},question_serializer.errors, status = 400)
         
 
         
@@ -244,6 +246,10 @@ class QuestionCreatingView(APIView):
 class QuestionSendingView(APIView):
 
     def get(self, request):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'read'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         #Get the question ids that are already in the quiz qanda table
         q_and_a_question_id_list = QuizQandA.objects.values_list('question', flat=True)
@@ -262,6 +268,10 @@ class QuestionSendingView(APIView):
 class QuestionUpdatingView(APIView):
 
     def post(self, request):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'update'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         #Get the data into variables
         question_id = request.data.get('question_id')
@@ -315,10 +325,10 @@ class QuestionUpdatingView(APIView):
                     return Response(question_update_serializer.errors, status=400)
             else:
                 make_is_updating_false_and_timestamp()
-                return Response({'Question has been taken by a user very recently'}, status=400)
+                return Response({'error':'Question has been taken by a user very recently'}, status=400)
             
         except Question.DoesNotExist:
-            return Response({'no question found'}, status=400)
+            return Response({'error':'no question found'}, status=400)
         
 
 
@@ -327,6 +337,10 @@ class QuestionUpdatingView(APIView):
 class QuestionDeleteView(APIView):
 
     def post(self, request):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'delete'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         #Getting the question id into a variable
 
@@ -371,6 +385,10 @@ class QuestionSelectingView(APIView):
 
     def get(self, request):
 
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'read'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         #getting the selected questions
         selected_question_objects = Question.objects.exclude(selected_order = 0).order_by('selected_order')
 
@@ -390,6 +408,11 @@ class QuestionSelectingView(APIView):
 
     def post(self, request):
 
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz', 'update'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+       
         #Getting the list of question ids to a variable
         selected_question_id_list = request.data.get('selected_question_id_list')
 
@@ -411,7 +434,7 @@ class QuestionSelectingView(APIView):
 
             except Question.DoesNotExist:
                 make_is_updating_false_and_timestamp()
-                return Response({'Question Not Found'}, status=400)
+                return Response({'error':'Question Not Found'}, status=400)
 
         make_is_updating_false_and_timestamp()
         return Response({'status':'success'}, status=201)
@@ -441,6 +464,11 @@ class RoleListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Roles', 'read'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         roles = Role.objects.all()
         serializer = RoleSerializer(roles, many=True)
         return Response(serializer.data)
@@ -449,7 +477,7 @@ class RoleListCreateView(APIView):
 
         # Check if the user has permission to access the page
         if not is_permission(request.user.role, 'Roles', 'create'):
-            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
         
         serializer = RoleSerializer(data=request.data)
@@ -504,15 +532,45 @@ class RoleRetrieveUpdateDeleteView(APIView):
 
     def put(self, request, pk, format=None):
         role = self.get_object(pk)
+        print('data', request.data)
         if role:
             serializer = RoleSerializer(role, data=request.data)
             if serializer.is_valid():
-                serializer.save()
+
+                role = serializer.save()
+
+                # Get the page data from the request
+                pages_data = request.data.get('pages', [])
+                # Extract the page ids from the pages data
+                page_ids = [page.get('id') for page in pages_data]
+
+                if page_ids:
+                    # Retrieve pages based on the provided ids
+                    pages = Page.objects.filter(id__in=page_ids)
+
+                    # Loop through the pages and create/update RolePage entries
+                    for page in pages:
+                        page_data = next(item for item in pages_data if item['id'] == page.id)
+                        # Get or create RolePage instance
+                        role_page, created = RolePage.objects.get_or_create(role=role, page=page)
+                        # Set permissions based on the provided data
+                        role_page.create = page_data.get('create', False)
+                        role_page.read = page_data.get('read', False)
+                        role_page.update = page_data.get('update', False)
+                        role_page.delete = page_data.get('delete', False)
+                        # Save the RolePage instance
+                        role_page.save()
+                    
                 return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, pk, format=None):
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Roles', 'delete'):
+            return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+        print('pk', pk)
         role = self.get_object(pk)
         if role:
             role.delete()
@@ -526,7 +584,11 @@ class ResultsListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, format=None):
-        # results = QuizResult.objects.all()
+        
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz Result', 'read'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         results = QuizResult.objects.all().order_by('-date', '-time')
         serializer = QuizResultSerializer(results, many=True)
         return Response(serializer.data)
@@ -549,6 +611,11 @@ class ResultsRetrieveUpdateDeleteView(APIView):
             return None
 
     def get(self, request, pk, format=None):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Quiz Result', 'read'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         result = self.get_object(pk)
         if result:
             serializer = QuizResultSerializer(result)
@@ -576,6 +643,11 @@ class SetAppointment(APIView):
 
 
     def put(self, request, pk, format=None):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Appointments', 'update'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         appointment = Appointment.objects.get(quiz_result = pk)
         serializer = AppointmentSerializer(appointment, data=request.data)
         if serializer.is_valid():
@@ -652,6 +724,7 @@ class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         # Check if the user has permission to access the page
         if not is_permission(request.user.role, 'Accounts', 'read'):
             return Response({"error: You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+        
         user_details = AuthUser.objects.get(id=pk)
         serializer = UserSerializer(user_details)
         return Response(serializer.data)
@@ -704,6 +777,11 @@ class AccountRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_pending_appointments(request):
+
+    # Check if the user has permission to access the page
+    if not is_permission(request.user.role, 'Appointments', 'read'):
+        return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
     if request.method == 'GET':
         appointments = Appointment.objects.filter(admin__auth_user = request.user.id, is_checked = False)
         serializer = AppointmentSerializer(appointments, many=True)
@@ -713,6 +791,11 @@ def get_user_pending_appointments(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_completed_appointments(request):
+
+    # Check if the user has permission to access the page
+    if not is_permission(request.user.role, 'Appointments', 'read'):
+        return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
     if request.method == 'GET':
         appointments = Appointment.objects.filter(admin__auth_user = request.user.id, is_checked = True)
         serializer = AppointmentSerializer(appointments, many=True)
@@ -757,3 +840,11 @@ def update_current_user(request):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_role_pages(request, pk):
+    if request.method == 'GET':
+        permission_pages = RolePage.objects.filter(role_id = pk)
+        serializer = RolePageSerializer(permission_pages, many=True)
+        return Response(serializer.data)

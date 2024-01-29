@@ -1,8 +1,14 @@
 from django.urls import path
-from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, QuestionListCreateView, RegisterView, RoleListCreateView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, update_current_user, user_appointment_details
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 
 urlpatterns = [
+    path('get_update_delete_user_role/<int:pk>/', RoleRetrieveUpdateDeleteView.as_view(), name='update_role'),
+    path('get_role_pages/<int:pk>/', get_user_role_pages, name='get-role-pages'),
     path('update_current_user/',update_current_user,name='update-user-account-details'),
     path('get_current_user/', get_current_user, name='get-current-user'),
     path('question-list/',QuestionListCreateView.as_view(), name='question-list-create'),
@@ -24,11 +30,14 @@ urlpatterns = [
     path('page/', PageListCreateView.as_view(), name='page-list-create'),
     path('page/<int:pk>/',PageRetrieveUpdateDeleteView.as_view(), name='page-retrieve-update-delete'),
     path('roles/', RoleListCreateView.as_view(), name='role-list-create'),
+    path('role/<int:pk>/', RoleRetrieveUpdateDeleteView.as_view(), name='role-retrieve-update-delete'),
     path('create_question/', QuestionCreatingView.as_view(), name='create-question'),
     path('send_questions/', QuestionSendingView.as_view(), name='send-questions'),
     path('update_question/', QuestionUpdatingView.as_view(), name='update-question'),
     path('delete_question/', QuestionDeleteView.as_view(), name='delete-question'),
     path('select_question/', QuestionSelectingView.as_view(), name='select_question'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
 ]
 
