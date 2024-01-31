@@ -121,6 +121,7 @@ class UserAppointments(serializers.ModelSerializer):
     age = serializers.CharField(source='quiz_result.patient.age', read_only=True)
     score = serializers.CharField(source='quiz_result.score', read_only=True)
     dp_level = serializers.CharField(source='quiz_result.dp_level', read_only=True)
+    no_of_days = serializers.CharField(source='quiz_result.no_of_days', read_only=True)
 
     class Meta:
         model = Appointment
@@ -137,7 +138,8 @@ class UserAppointments(serializers.ModelSerializer):
             'scheduled_time_period',
             'response_description',
             'dp_level',
-            'score' 
+            'score',
+            'no_of_days'
         ]
 
 

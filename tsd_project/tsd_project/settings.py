@@ -99,6 +99,7 @@ MIDDLEWARE = [
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend'
+    
 ]
 
 AUTH_USER_MODEL = 'tsd_main_app.AuthUser'
