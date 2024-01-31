@@ -619,7 +619,16 @@ class ResultsRetrieveUpdateDeleteView(APIView):
         result = self.get_object(pk)
         if result:
             serializer = QuizResultSerializer(result)
-            return Response(serializer.data)
+            questions_and_answers = []
+            q_and_a_objects = QuizQandA.objects.filter(quiz_result = result.id)
+            for q_and_a in q_and_a_objects:
+                answer = Answer.objects.get(id = q_and_a.answer_id)
+                questions_and_answers.append({
+                    'question': q_and_a.question.question,
+                    'answer': answer.answer,
+                })
+            print('questions_and_answers',questions_and_answers)
+            return Response({'quiz_result_data': serializer.data, 'questions_and_answers': questions_and_answers})
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, pk, format=None):
@@ -864,11 +873,21 @@ def get_user_role_pages(request, pk):
 
 class PrivateQuestionListCreateView(APIView):
     def get(self, request, format=None):
-        questions = PrivateQuestions.objects.all()
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Private Questions', 'read'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
+        questions = PrivateQuestions.objects.filter(admin__auth_user = request.user).order_by('-asked_date')
         serializer = PrivateQuestionsSerializer(questions, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Private Questions', 'create'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = PrivateQuestionsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -884,9 +903,33 @@ class PrivateQuestionsRetrieveUpdateDestroyView(APIView):
             raise Http404
 
     def put(self, request, pk, format=None):
+
+        # Check if the user has permission to access the page
+        if not is_permission(request.user.role, 'Private Questions', 'update'):
+            return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
+
         question = self.get_object(pk)
         serializer = PrivateQuestionsUpdateSerializer(question, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"success": "Question updated successfully!"}, status=201)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_appointments_count (request):
+    if request.method == 'GET':
+        # count all appointments for the user
+        user = request.user
+        appointments = Appointment.objects.filter(admin__auth_user = user, is_checked = False)   
+        return Response({'count': appointments.count()})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_private_questions_count (request):
+    if request.method == 'GET':
+        # count all private questions for the user
+        user = request.user
+        questions = PrivateQuestions.objects.filter(admin__auth_user = user, is_checked = False)   
+        return Response({'count': questions.count()})   
