@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Admin, Appointment, AuthUser, Page, Role, Question, Answer, QuizResult, RolePage
+from .models import Admin, Appointment, AuthUser, Page, PrivateQuestions, Role, Question, Answer, QuizResult, RolePage
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 
@@ -185,3 +185,14 @@ class RolePageSerializer(serializers.ModelSerializer):
     class Meta:
         model = RolePage
         fields = '__all__'
+
+
+class PrivateQuestionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrivateQuestions
+        fields = '__all__'
+
+class PrivateQuestionsUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrivateQuestions
+        fields = ['private_answer', 'is_checked']

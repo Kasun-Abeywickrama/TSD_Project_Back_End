@@ -3,8 +3,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
-from .models import Admin, Appointment, AuthUser, Page, QuizResult, Role, RolePage, Question, Answer, QuizQandA
-from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, QuizResultSerializer, RolePageSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
+from .models import Admin, Appointment, AuthUser, Page, PrivateQuestions, QuizResult, Role, RolePage, Question, Answer, QuizQandA
+from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, PrivateQuestionsSerializer, PrivateQuestionsUpdateSerializer, QuizResultSerializer, RolePageSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions
@@ -860,3 +860,33 @@ def get_user_role_pages(request, pk):
         permission_pages = RolePage.objects.filter(role_id = pk)
         serializer = RolePageSerializer(permission_pages, many=True)
         return Response(serializer.data)
+    
+
+class PrivateQuestionListCreateView(APIView):
+    def get(self, request, format=None):
+        questions = PrivateQuestions.objects.all()
+        serializer = PrivateQuestionsSerializer(questions, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = PrivateQuestionsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class PrivateQuestionsRetrieveUpdateDestroyView(APIView):
+    def get_object(self, pk):
+        try:
+            return PrivateQuestions.objects.get(pk=pk)
+        except PrivateQuestions.DoesNotExist:
+            raise Http404
+
+    def put(self, request, pk, format=None):
+        question = self.get_object(pk)
+        serializer = PrivateQuestionsUpdateSerializer(question, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success": "Question updated successfully!"}, status=201)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
