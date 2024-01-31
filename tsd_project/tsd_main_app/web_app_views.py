@@ -648,7 +648,7 @@ class SetAppointment(APIView):
         if not is_permission(request.user.role, 'Appointments', 'update'):
             return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
-        appointment = Appointment.objects.get(quiz_result = pk)
+        appointment = Appointment.objects.get(id = pk)
         serializer = AppointmentSerializer(appointment, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -806,8 +806,20 @@ def get_user_completed_appointments(request):
 def user_appointment_details(request, pk):
     if request.method == 'GET':
         appointment = Appointment.objects.get(id = pk)
+
+        questions_and_answers = []
+        quiz_result_id = appointment.quiz_result
+        q_and_a_objects = QuizQandA.objects.filter(quiz_result = quiz_result_id)
+        for q_and_a in q_and_a_objects:
+            answer = Answer.objects.get(id = q_and_a.answer_id)
+            questions_and_answers.append({
+                'question': q_and_a.question.question,
+                'answer': answer.answer,
+            })
         serializer = UserAppointments(appointment)
-        return Response(serializer.data)
+        # print(serializer.data)
+        print(questions_and_answers)
+        return Response({'appointment_data': serializer.data, 'questions_and_answers': questions_and_answers})
 
 
 @api_view(['GET'])
