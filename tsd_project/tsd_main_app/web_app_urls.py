@@ -1,5 +1,5 @@
 from django.urls import path
-from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, PrivateQuestionListCreateView, PrivateQuestionsRetrieveUpdateDestroyView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -7,6 +7,8 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
+    path('private-question-retrieve-update-delete/<int:pk>/', PrivateQuestionsRetrieveUpdateDestroyView.as_view(), name='private-question-retrieve-update-delete'),
+    path('private_question/', PrivateQuestionListCreateView.as_view(), name='private-question'),
     path('get_update_delete_user_role/<int:pk>/', RoleRetrieveUpdateDeleteView.as_view(), name='update_role'),
     path('get_role_pages/<int:pk>/', get_user_role_pages, name='get-role-pages'),
     path('update_current_user/',update_current_user,name='update-user-account-details'),

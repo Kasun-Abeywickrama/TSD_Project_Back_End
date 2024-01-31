@@ -196,6 +196,7 @@ class PrivateQuestions(models.Model):
     private_answer = models.CharField(max_length=500)
     asked_date = models.DateField(auto_now_add=True)
     asked_time = models.TimeField(auto_now_add=True)
+    is_checked = models.BooleanField(default=False)
 
     def __str__(self):
         return self.private_question
