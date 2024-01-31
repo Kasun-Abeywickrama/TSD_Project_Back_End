@@ -80,7 +80,7 @@ REST_FRAMEWORK = {
 # Configure JWT
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=14),
     'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
@@ -142,12 +142,12 @@ DATABASES = {
          'PASSWORD': 'MySQL2024$',
          'HOST': 'MindCare.mysql.pythonanywhere-services.com',
          'PORT': '3306',
-         #'ENGINE': 'django.db.backends.mysql',
-         #'NAME': 'tsdproject',
-         #'USER': 'root',
-         #'PASSWORD': 'root',
-         #'HOST': 'localhost',
-         #'PORT': '3306',
+        #  'ENGINE': 'django.db.backends.mysql',
+        #  'NAME': 'tsdproject',
+        #  'USER': 'root',
+        #  'PASSWORD': 'root',
+        #  'HOST': 'localhost',
+        #  'PORT': '3306',
     }
 }
 
