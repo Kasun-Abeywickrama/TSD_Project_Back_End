@@ -843,7 +843,7 @@ class StorePrivateQuestionView(APIView):
 
                 private_question_data = request.data
 
-                private_question_data['private_answer'] = "Not yet answered"
+                private_question_data['private_answer'] = "--"
                 private_question_data['patient'] = patient_id
 
                 private_question_serializer = PrivateQuestionsSerializer(data = private_question_data)
