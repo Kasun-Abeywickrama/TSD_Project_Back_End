@@ -743,8 +743,8 @@ class AppointmentListSendingView(APIView):
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 
 
-#View that makes the is_patient_viewed attribute true
-class MakeIsPatientViewedTrueView(APIView):
+#View that makes the appointment is_patient_viewed attribute true
+class MakeAppointmentIsPatientViewedTrueView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -771,8 +771,8 @@ class MakeIsPatientViewedTrueView(APIView):
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
         
 
-#View to send the notification amount
-class SendNotificationAmountView(APIView):
+#View to send the appointments notifications amount
+class SendAppointmentsNotificationsAmountView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -788,7 +788,7 @@ class SendNotificationAmountView(APIView):
 
                 patient_id = patient.id
 
-                notificationAmount = 0
+                appointmentsNotificationsAmount = 0
 
                 #Getting all the quiz results related to that patient id
                 quiz_results = QuizResult.objects.filter(patient = patient_id)
@@ -807,15 +807,15 @@ class SendNotificationAmountView(APIView):
 
                                 if(appointment.scheduled_date is not None and appointment.scheduled_time_period is not None and appointment.response_description is not None and appointment.is_patient_viewed == False):
 
-                                    notificationAmount += 1
+                                    appointmentsNotificationsAmount += 1
                         
                         else:
                             continue
                         
-                    return JsonResponse({'notification_amount' : str(notificationAmount)}, status = 200)
+                    return JsonResponse({'appointments_notifications_amount' : str(appointmentsNotificationsAmount)}, status = 200)
                 
                 else:
-                    return JsonResponse({'notification_amount' : str(notificationAmount)}, status = 200)
+                    return JsonResponse({'appointments_notifications_amount' : str(appointmentsNotificationsAmount)}, status = 200)
             
             except Patient.DoesNotExist:
                 return JsonResponse({'error': 'patient is not available' }, status=400)
@@ -889,12 +889,18 @@ class SendPrivateQuestionsView(APIView):
 
                     for private_question_object in private_question_objects:
 
+                        if(private_question_object.is_patient_viewed == True):
+                            is_patient_viewed = 1
+                        else:
+                            is_patient_viewed = 0
+
                         private_questions_list.append({
                             'private_question_id': private_question_object.id,
                             'private_question': private_question_object.private_question,
                             'private_answer': private_question_object.private_answer,
                             'asked_date': private_question_object.asked_date,
                             'asked_time': private_question_object.asked_time,
+                            'is_patient_viewed': is_patient_viewed,
                             'counselor_first_name': private_question_object.admin.first_name,
                             'counselor_last_name': private_question_object.admin.last_name,
                         })
@@ -907,6 +913,71 @@ class SendPrivateQuestionsView(APIView):
             except Patient.DoesNotExist:
                 return JsonResponse({'error': 'patient is not available' }, status=400)
         
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+#View that makes the private question is_patient_viewed attribute true
+class MakePrivateQuestionIsPatientViewedTrueView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            private_question_id = request.data.get('private_question_id')
+
+            try:
+                private_question_object = PrivateQuestions.objects.get(id = private_question_id)
+
+                private_question_object.is_patient_viewed = True
+
+                private_question_object.save()
+
+                return JsonResponse({'status': 'success'}, status=201)
+
+            except PrivateQuestions.DoesNotExist:
+                return JsonResponse({'error': 'private question is not available' }, status=400)
+
+        else:
+            return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
+        
+
+#View to send the private questions notifications amount
+class SendPrivateQuestionsNotificationsAmountView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+
+        # Checking the auth user type
+        if request.user.auth_user_type == 'patient':
+
+            try:
+                #Getting the patient_id through the auth_user_id
+                patient = Patient.objects.get(auth_user = request.user.id)
+                print(patient)
+
+                patient_id = patient.id
+
+                privateQuestionsNotificationsAmount = 0
+
+                private_question_objects = PrivateQuestions.objects.filter(patient = patient_id)
+
+                if private_question_objects:
+
+                    for private_question_object in private_question_objects:
+
+                        if(private_question_object.is_patient_viewed == False):
+                            privateQuestionsNotificationsAmount += 1
+                
+                return JsonResponse({'private_questions_notifications_amount': str(privateQuestionsNotificationsAmount)}, status = 200)
+            
+            except Patient.DoesNotExist:
+                return JsonResponse({'error': 'patient is not available' }, status=400)
+                    
         else:
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
 
