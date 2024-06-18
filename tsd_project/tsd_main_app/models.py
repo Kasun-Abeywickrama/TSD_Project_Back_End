@@ -197,6 +197,7 @@ class PrivateQuestions(models.Model):
     asked_date = models.DateField(auto_now_add=True)
     asked_time = models.TimeField(auto_now_add=True)
     is_checked = models.BooleanField(default=False)
+    is_patient_viewed = models.BooleanField(default=True)
 
     def __str__(self):
         return self.private_question
