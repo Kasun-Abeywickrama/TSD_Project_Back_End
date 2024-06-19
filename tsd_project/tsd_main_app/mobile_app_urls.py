@@ -1,5 +1,5 @@
 from django.urls import path
-from .mobile_app_views import AppointmentListSendingView, BlacklistTokensView, MakePrivateQuestionIsPatientViewedTrueView, RegenerateAccessToken, DeleteAccountView, MakeAppointmentIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendAppointmentsNotificationsAmountView, SendPrivateQuestionsNotificationsAmountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
+from .mobile_app_views import AppointmentListSendingView, BlacklistTokensView, MakePrivateQuestionIsPatientViewedTrueView, RegenerateAccessToken, DeleteAccountView, MakeAppointmentIsPatientViewedTrueView, SendCounselorDetailsView, PatientRegisterView, PatientLoginView, QuizSendingView, QuizResultStoringView, QuizResultSendingView, PreviousQuizResultSendingView, PatientPersonalDetailsSendingView, PatientPersonalDetailsUpdateView, PatientAuthUserDetailsSendingView, PatientAuthUserDetailsUpdateView, MakeAppointmentView, SendAppointmentNotificationCountView, SendPrivateQuestionNotificationCountView, SendPrivateQuestionsView, StorePrivateQuestionView, checkOngoingAppointmentView
 
 
 urlpatterns = [
@@ -48,8 +48,8 @@ urlpatterns = [
     #path to make appointment is_patient_viewed true
     path('make_appointment_is_patient_viewed_true/', MakeAppointmentIsPatientViewedTrueView.as_view(), name='make-appointment-is-patient-viewed-true'),
 
-    #path to send the appointments notifications amount
-    path('send_appointments_notifications_amount/', SendAppointmentsNotificationsAmountView.as_view(), name='send-appointments-notifications-amount'),
+    #path to send the appointment notification count
+    path('send_appointment_notification_count/', SendAppointmentNotificationCountView.as_view(), name='send-appointment-notification-count'),
 
     #path to store private question
     path('store_private_question/', StorePrivateQuestionView.as_view(), name='store-private-question'),
@@ -60,8 +60,8 @@ urlpatterns = [
     #path to make private question is_patient_viewed true
     path('make_private_question_is_patient_viewed_true/', MakePrivateQuestionIsPatientViewedTrueView.as_view(), name='make-private-question-is-patient-viewed-true'),
 
-    #path to send the private questions notifications amount
-    path('send_private_questions_notifications_amount/', SendPrivateQuestionsNotificationsAmountView.as_view(), name='send-private-questions-notifications-amount'),
+    #path to send the private question notification count
+    path('send_private_question_notification_count/', SendPrivateQuestionNotificationCountView.as_view(), name='send-private-question-notification-count'),
 
     #path to blaclist refresh token
     path('blacklist_tokens/', BlacklistTokensView.as_view(), name='blacklist-tokens'),

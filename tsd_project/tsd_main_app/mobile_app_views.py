@@ -771,8 +771,8 @@ class MakeAppointmentIsPatientViewedTrueView(APIView):
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
         
 
-#View to send the appointments notifications amount
-class SendAppointmentsNotificationsAmountView(APIView):
+#View to send the appointment notification count
+class SendAppointmentNotificationCountView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -788,7 +788,7 @@ class SendAppointmentsNotificationsAmountView(APIView):
 
                 patient_id = patient.id
 
-                appointmentsNotificationsAmount = 0
+                appointmentNotificationCount = 0
 
                 #Getting all the quiz results related to that patient id
                 quiz_results = QuizResult.objects.filter(patient = patient_id)
@@ -807,15 +807,15 @@ class SendAppointmentsNotificationsAmountView(APIView):
 
                                 if(appointment.scheduled_date is not None and appointment.scheduled_time_period is not None and appointment.response_description is not None and appointment.is_patient_viewed == False):
 
-                                    appointmentsNotificationsAmount += 1
+                                    appointmentNotificationCount += 1
                         
                         else:
                             continue
                         
-                    return JsonResponse({'appointments_notifications_amount' : str(appointmentsNotificationsAmount)}, status = 200)
+                    return JsonResponse({'appointment_notification_count' : str(appointmentNotificationCount)}, status = 200)
                 
                 else:
-                    return JsonResponse({'appointments_notifications_amount' : str(appointmentsNotificationsAmount)}, status = 200)
+                    return JsonResponse({'appointment_notification_count' : str(appointmentNotificationCount)}, status = 200)
             
             except Patient.DoesNotExist:
                 return JsonResponse({'error': 'patient is not available' }, status=400)
@@ -945,8 +945,8 @@ class MakePrivateQuestionIsPatientViewedTrueView(APIView):
             return JsonResponse({'errors': 'You does not have permission to access this content'}, status=400)
         
 
-#View to send the private questions notifications amount
-class SendPrivateQuestionsNotificationsAmountView(APIView):
+#View to send the private question notification count
+class SendPrivateQuestionNotificationCountView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -962,7 +962,7 @@ class SendPrivateQuestionsNotificationsAmountView(APIView):
 
                 patient_id = patient.id
 
-                privateQuestionsNotificationsAmount = 0
+                privateQuestionNotificationCount = 0
 
                 private_question_objects = PrivateQuestions.objects.filter(patient = patient_id)
 
@@ -971,9 +971,9 @@ class SendPrivateQuestionsNotificationsAmountView(APIView):
                     for private_question_object in private_question_objects:
 
                         if(private_question_object.is_patient_viewed == False):
-                            privateQuestionsNotificationsAmount += 1
+                            privateQuestionNotificationCount += 1
                 
-                return JsonResponse({'private_questions_notifications_amount': str(privateQuestionsNotificationsAmount)}, status = 200)
+                return JsonResponse({'private_question_notification_count': str(privateQuestionNotificationCount)}, status = 200)
             
             except Patient.DoesNotExist:
                 return JsonResponse({'error': 'patient is not available' }, status=400)
