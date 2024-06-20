@@ -1,5 +1,5 @@
 from django.urls import path
-from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, PrivateQuestionListCreateView, PrivateQuestionsRetrieveUpdateDestroyView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, PrivateQuestionListCreateView, PrivateQuestionsRetrieveUpdateDestroyView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details, user_appointments_count, user_private_questions_count
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -7,6 +7,8 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
+    path('user_private_questions_count/', user_private_questions_count,name='user-private-questions-count'),
+    path('user_appointments_count/',user_appointments_count,name='user-appointments-count'),
     path('private-question-retrieve-update-delete/<int:pk>/', PrivateQuestionsRetrieveUpdateDestroyView.as_view(), name='private-question-retrieve-update-delete'),
     path('private_question/', PrivateQuestionListCreateView.as_view(), name='private-question'),
     path('get_update_delete_user_role/<int:pk>/', RoleRetrieveUpdateDeleteView.as_view(), name='update_role'),
