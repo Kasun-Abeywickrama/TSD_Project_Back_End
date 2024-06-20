@@ -918,11 +918,21 @@ class PrivateQuestionsRetrieveUpdateDestroyView(APIView):
         if not is_permission(request.user.role, 'Private Questions', 'can_update'):
             return Response({"error": "You do not have permission to access this page"}, status=status.HTTP_403_FORBIDDEN)
 
-        question = self.get_object(pk)
+        try:
+            question = PrivateQuestions.objects.get(pk=pk)
+        except PrivateQuestions.DoesNotExist:
+            return Response({"error": "Question not found"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = PrivateQuestionsUpdateSerializer(question, data=request.data)
         if serializer.is_valid():
+            # Save the serializer data
             serializer.save()
-            return Response({"success": "Question updated successfully!"}, status=201)
+
+            # Set is_patient_viewed to False
+            question.is_patient_viewed = False
+            question.save()
+
+            return Response({"success": "Question updated successfully!"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
