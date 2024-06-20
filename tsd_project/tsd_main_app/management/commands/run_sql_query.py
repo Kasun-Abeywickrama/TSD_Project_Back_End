@@ -34,6 +34,10 @@ class Command(BaseCommand):
             (4, 1, 1, 1, 1, 4, 1),
             (5, 1, 1, 1, 1, 5, 1),
             (6, 1, 1, 1, 1, 6, 1);
+            """,
+            """
+            INSERT INTO tsd_main_app_admin (id, first_name, last_name, auth_user_id) VALUES 
+            (1, 'Main', 'Admin', 1);
             """
         ]
         
