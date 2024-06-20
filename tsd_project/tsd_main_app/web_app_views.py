@@ -28,13 +28,13 @@ def is_permission(role_name, page_title, permission_type):
     try:
         role_page = RolePage.objects.get(role_id=role.id, page_id=page.id)
         if permission_type == 'create':
-            return role_page.create
+            return role_page.can_create
         elif permission_type == 'read':
-            return role_page.read
+            return role_page.can_read
         elif permission_type == 'update':
-            return role_page.update
+            return role_page.can_update
         elif permission_type == 'delete':
-            return role_page.delete
+            return role_page.can_delete
     except:
         print('role_page not found in is_permission function')
 

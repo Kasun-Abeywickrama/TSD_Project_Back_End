@@ -26,10 +26,10 @@ class Role(models.Model):
 class RolePage(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     page = models.ForeignKey(Page, on_delete=models.CASCADE)
-    create = models.BooleanField(default=False)
-    read = models.BooleanField(default=False)
-    update = models.BooleanField(default=False)
-    delete = models.BooleanField(default=False)
+    can_create = models.BooleanField(default=False)
+    can_read = models.BooleanField(default=False)
+    can_update = models.BooleanField(default=False)
+    can_delete = models.BooleanField(default=False)
 
     def __str__(self):
         return 'Role: ' + self.role.name + ' -------------> Page: ' + self.page.title
