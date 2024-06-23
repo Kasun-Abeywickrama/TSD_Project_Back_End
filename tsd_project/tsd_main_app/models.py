@@ -42,6 +42,8 @@ class AuthUser(AbstractUser):
     auth_user_type = models.CharField(max_length=50)
     role = models.ForeignKey(Role, on_delete=models.CASCADE, null=True)
     age = models.IntegerField(null = True)
+    otp = models.IntegerField(null = True)
+    otp_expires_at = models.DateTimeField(null = True)
 
     def __str__(self):
         return self.username
