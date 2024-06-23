@@ -89,12 +89,12 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -106,7 +106,13 @@ AUTH_USER_MODEL = 'tsd_main_app.AuthUser'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:54910',  # Flutter app url
+    'http://localhost:3000'
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+]
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -136,18 +142,18 @@ WSGI_APPLICATION = 'tsd_project.wsgi.application'
 
 DATABASES = {
     'default': {
-         'ENGINE': 'django.db.backends.mysql',
-         'NAME': 'MindCare$tsd_project',
-         'USER': 'MindCare',
-         'PASSWORD': 'MySQL2024$',
-         'HOST': 'MindCare.mysql.pythonanywhere-services.com',
-         'PORT': '3306',
         #  'ENGINE': 'django.db.backends.mysql',
-        #  'NAME': 'tsdproject',
-        #  'USER': 'root',
-        #  'PASSWORD': 'root',
-        #  'HOST': 'localhost',
+        #  'NAME': 'MindCare$tsd_project',
+        #  'USER': 'MindCare',
+        #  'PASSWORD': 'MySQL2024$',
+        #  'HOST': 'MindCare.mysql.pythonanywhere-services.com',
         #  'PORT': '3306',
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'tsdproject_new',
+         'USER': 'root',
+         'PASSWORD': 'root',
+         'HOST': 'localhost',
+         'PORT': '3306',
     }
 }
 
@@ -201,3 +207,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, '')
+
+# Email Configuration
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'xxxxxx@gmail.com'
+EMAIL_HOST_PASSWORD = 'xxxxxxx' 

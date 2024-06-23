@@ -1,5 +1,5 @@
 from django.urls import path
-from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, PrivateQuestionListCreateView, PrivateQuestionsRetrieveUpdateDestroyView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, update_current_user, user_appointment_details, user_appointments_count, user_private_questions_count
+from .web_app_views import AccountRetrieveUpdateDeleteView, AccountsView, AppointmentListView, LogoutView, PageListCreateView, PageRetrieveUpdateDeleteView, PrivateQuestionListCreateView, PrivateQuestionsRetrieveUpdateDestroyView, QuestionListCreateView, RegisterView, RoleListCreateView, RoleRetrieveUpdateDeleteView, SigninView, QuestionCreatingView, QuestionSendingView, QuestionUpdatingView, QuestionDeleteView, QuestionSelectingView, SetAppointment, ResultsListCreateView, ResultsRetrieveUpdateDeleteView, get_csrf_token, get_current_user, get_user_completed_appointments, get_user_pending_appointments, get_user_role_pages, reset_password, send_otp, update_current_user, user_appointment_details, user_appointments_count, user_private_questions_count
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -42,6 +42,9 @@ urlpatterns = [
     path('select_question/', QuestionSelectingView.as_view(), name='select_question'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('send_otp/', send_otp, name='send-otp'),
+    path('reset_password/', reset_password, name='reset-password'),
+    path('get_csrf_token/', get_csrf_token, name='get_csrf_token'),
 
 ]
 
