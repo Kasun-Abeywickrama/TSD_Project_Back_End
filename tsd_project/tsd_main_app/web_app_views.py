@@ -1,8 +1,11 @@
+from random import randint
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
+
+from django.conf import settings
 from .models import Admin, Appointment, AuthUser, Page, PrivateQuestions, QuizResult, Role, RolePage, Question, Answer, QuizQandA
 from .web_app_serializers import AdminSerializer, AppointmentSerializer, PageSerializer, PrivateQuestionsSerializer, PrivateQuestionsUpdateSerializer, QuizResultSerializer, RolePageSerializer, RoleSerializer, UpdateCurrentUserSerializer, UserAppointments, UserSerializer, QuestionSerializer, AnswerSerializer, QuestionSendingSerializer, LogoutSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -11,6 +14,20 @@ from rest_framework import generics, permissions
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+
+from django.core.mail import send_mail
+from django.http import HttpResponse
+from smtplib import SMTPException
+
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+import json
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
+
+
+
 
 
 # Check if a role has a specific permission on a page.
@@ -39,6 +56,25 @@ def is_permission(role_name, page_title, permission_type):
         print('role_page not found in is_permission function')
 
 
+# ------------------- Send Email View ------------------------- #
+
+def send_email(subject, message, email_from, recipient_list): 
+    try:
+        send_mail(subject, message, email_from, recipient_list)
+        return True, 'Email sent successfully'
+    except SMTPException as e:
+        return False, f'Error: {str(e)}'
+    
+
+
+# -----------------  Get CSRF ApiView   ----------------- #
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({'detail': 'CSRF cookie set'})
+
+# def get_csrf_token(request):
+#     csrf_token = get_token(request)
+#     return JsonResponse({'csrfToken': csrf_token})
 
 # -----------------  Logout ApiVidew   ----------------- #
 
@@ -953,3 +989,97 @@ def user_private_questions_count (request):
         user = request.user
         questions = PrivateQuestions.objects.filter(admin__auth_user = user, is_checked = False)
         return Response({'count': questions.count()})
+    
+
+# ------------------- Reset Password View ------------------------- #
+
+@ensure_csrf_cookie
+@csrf_exempt
+def send_otp(request):
+
+    if request.method == 'POST':
+         # Get the JSON data from the request body
+        data = json.loads(request.body)
+        # Extract the 'email' field from the JSON data
+        email = data.get('email', '')
+        try:
+            user = AuthUser.objects.get(email=email)
+
+            if user:
+                otp = randint(100000, 999999)
+                user.otp = otp
+                user.otp_expires_at = timezone.now() + timezone.timedelta(minutes=5)
+                user.save()
+
+                subject = 'Mind Care OTP'
+                message = f'Your OTP is {otp}'
+                email_from = settings.EMAIL_HOST_USER
+                recipient_list = [email]
+                send_email(subject, message, email_from, recipient_list)
+
+                success, message = send_email(subject, message, email_from, recipient_list)
+                if success:
+                    return HttpResponse({'message :  The otp has been sent to your email'}, status=200)
+                else:
+                    print(message)
+                    return HttpResponse({'Email sent not successful'}, status=500)
+            else:
+                return HttpResponse({'User does not exist'}, status=404)
+        except AuthUser.DoesNotExist:
+            return HttpResponse({'User does not exist'}, status=404)
+        
+
+def verify_otp(email, otp):
+    try:
+        user = AuthUser.objects.get(email=email)
+        if user.otp == int(otp):
+            if timezone.now() <= user.otp_expires_at:
+                return True, 'OTP verified successfully'
+            else:
+                # print('OTP expired')
+                return False , 'OTP expired'
+        else:
+            # print('OTP does not match')
+            return False, 'OTP does not match'
+            
+    except AuthUser.DoesNotExist:
+        # print('User does not exist')
+        return False, 'User does not exist'
+
+
+@ensure_csrf_cookie
+@csrf_exempt
+def reset_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+        new_password = data.get('password')
+        otp = data.get('otp')
+
+        if not email or not new_password or not otp: 
+            return HttpResponse({'Please enter all fields'}, status=400)
+
+        # Validate password format
+        try:
+            validate_password(new_password)
+        except ValidationError:
+            return JsonResponse({'Password format not valid'}, status=400)
+
+        try:
+            success, message = verify_otp(email, otp)
+            if not success:
+                return HttpResponse({message}, status=400)
+            
+            user = AuthUser.objects.get(email=email)
+
+            if user:
+                user.set_password(new_password)
+                user.save()
+                return HttpResponse({'Password reset successful'}, status=200)
+            else:
+                return HttpResponse({'User does not exist'}, status=404)
+            
+        except AuthUser.DoesNotExist:
+            return HttpResponse({'User does not exist'}, status=404)
+    
+
